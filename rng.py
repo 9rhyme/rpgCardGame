@@ -8,7 +8,8 @@ def RNG_Outcome(possibility):
     tempList = (True, False)
     weights = (possibility, 1 - possibility)
     return random.choices(tempList, weights)
-def round(input, decimals):
-    input = input
-    input = "{:.2f}".format(input)
-    return float(input)
+def round(input, decimals=2):
+    input = str(input)
+    point = input.find('.')
+    temp = input[0:point+decimals+1]
+    return float(temp)
