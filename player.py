@@ -46,8 +46,14 @@ class Player:
             self.frame_index += 1
             if self.frame_index ==len(self.animation_list[self.action]):
                 self.frame_index = 0
+                self.idle()
     def draw(self, screen):
         screen.blit(self.image,self.rect)
+
+    def idle(self):
+        self.action = 0
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
 
     def recieveDamage(self, dmg, effect = None):
         if dmg == 0:
@@ -63,6 +69,9 @@ class Player:
             self.activeEffects[effect] = 3
 
     def offensive(self, attackType):
+        self.action = 1
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
         dmg = 0
         effect = None
         if rng.RNG_Outcome(self.accuracy):
