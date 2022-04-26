@@ -1,13 +1,16 @@
 import rng
 import pygame
+
+
 class Enemy:
-    enemyTypes = {'demon':'burn', 'mage':None, 'C':'Bleeding', 'Boss': 'burn'}
+    enemyTypes = {'demon': 'burn', 'mage': None, 'C': 'Bleeding', 'Boss': 'burn'}
     animationLengths = {'demon': (6, 15), 'mage': (12, 40)}
+
     def __init__(self, type, level):
         self.level = level
         self.alive = True
         self.isFrozen = False
-        self.max_health = 100.0 + (self.level-1) * 50
+        self.max_health = 100.0 + (self.level - 1) * 50
         self.curr_health = self.max_health
 
         self.type = type
@@ -22,23 +25,21 @@ class Enemy:
         self.action = 0  # 0:idle, 1:basicAttack, ...
         self.lengths = {'idle': self.animationLengths[self.type][0], 'attack': self.animationLengths[self.type][1]}
 
-
         self.loadSprites()
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (270, 50)
 
     def loadSprites(self):
-        #try and load demon sprites
+        # try and load demon sprites
 
         for move in self.lengths.keys():
             temp_list = []
-            for i in range(1, self.lengths[move]+1):
+            for i in range(1, self.lengths[move] + 1):
                 img = pygame.image.load(f'img/animations/enemies/{self.type}/{move}/_ ({i}).png')
                 img = pygame.transform.scale(img, (img.get_width() * 2, img.get_height() * 2))
                 temp_list.append(img)
             self.animation_list.append(temp_list)
-
 
     def update(self):
         animation_cooldown = 100
@@ -59,10 +60,10 @@ class Enemy:
                     self.idle()
 
     def draw(self, screen):
-        screen.blit(self.image,self.rect)
+        screen.blit(self.image, self.rect)
 
-    def recieveDamage(self, dmg, effect = None):
-        self.curr_health -= dmg * (1-self.defence)
+    def recieveDamage(self, dmg, effect=None):
+        self.curr_health -= dmg * (1 - self.defence)
         if effect is not None:
             self.applyEffect(effect)
         if self.curr_health < 1:
@@ -83,7 +84,7 @@ class Enemy:
             dmg = rng.RNG_Shift(self.attackPow, 10)
             if rng.RNG_Outcome(0.1):
                 effect = self.passive
-        return dmg , effect
+        return dmg, effect
 
     def idle(self):
         self.action = 0
@@ -96,13 +97,13 @@ class Enemy:
                 if effect == 'zapped':
                     self.accuracy -= 0.2
                 if effect == 'frozen':
-                    self.isFrozen == True
+                    self.isFrozen = True
                     self.activeEffects[effect] = 0
                 if effect == 'burning':
                     self.defence -= 0.2
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health*0.05
-                self.activeEffects[effect] -=1
+                    self.curr_health -= self.max_health * 0.05
+                self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 2:
                 if effect == 'bleeding':
                     self.curr_health -= self.max_health * 0.05
@@ -117,10 +118,7 @@ class Enemy:
                 if effect == 'zapped':
                     self.accuracy += 0.2
                 if effect == 'frozen':
-                    self.isFrozen == False
+                    self.isFrozen = False
                 if effect == 'burning':
                     self.defence += 0.2
                 self.activeEffects.pop(effect)
-
-
-
