@@ -3,14 +3,14 @@ import pygame
 
 
 class Enemy:
-    enemyTypes = {'demon': 'burn', 'mage': None, 'C': 'Bleeding', 'Boss': 'burn'}
-    animationLengths = {'demon': (6, 15), 'mage': (12, 40)}
+    enemyTypes = {'mage': 'burning', 'oni': 'Bleeding'}
+    animationLengths = { 'mage': (12, 40), 'oni':(14,37)}
 
     def __init__(self, type, level):
         self.level = level
         self.alive = True
         self.isFrozen = False
-        self.max_health = 100.0 + (self.level - 1) * 50
+        self.max_health = 50.0 + (self.level - 1) * 50 # enemies gain 50 hp each level
         self.curr_health = self.max_health
 
         self.type = type
@@ -25,13 +25,13 @@ class Enemy:
         self.action = 0  # 0:idle, 1:basicAttack, ...
         self.lengths = {'idle': self.animationLengths[self.type][0], 'attack': self.animationLengths[self.type][1]}
 
-        self.loadSprites()
+        self.loadSprites() # sprites are loaded when a new enemy is created
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
-        self.rect.center = (270, 50)
+        self.rect.center = (300, 120)
 
     def loadSprites(self):
-        # try and load demon sprites
+        # try and load enemy sprites
 
         for move in self.lengths.keys():
             temp_list = []
@@ -42,7 +42,7 @@ class Enemy:
             self.animation_list.append(temp_list)
 
     def update(self):
-        animation_cooldown = 100
+        animation_cooldown = 80
         # handle animation
         # update image
         self.image = self.animation_list[self.action][self.frame_index]
@@ -58,10 +58,10 @@ class Enemy:
                 if self.frame_index == self.lengths['attack']:
                     self.frame_index = 0
                     self.idle()
-
+    # draw the enemy
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-
+    # recieve damage and effects
     def recieveDamage(self, dmg, effect=None):
         self.curr_health -= dmg * (1 - self.defence)
         if effect is not None:
@@ -70,10 +70,12 @@ class Enemy:
             self.curr_health = 0
             self.alive = False
 
+    # apply given effect to the enemy
     def applyEffect(self, effect):
         if effect not in self.activeEffects.keys():
             self.activeEffects[effect] = 3
 
+    # attack to the player
     def attack(self):
         dmg = 0
         effect = None
@@ -86,19 +88,22 @@ class Enemy:
                 effect = self.passive
         return dmg, effect
 
+    # get back to the idle state
     def idle(self):
         self.action = 0
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
 
+    # manage all passive effects active on the enemy
     def manageStatusEffects(self):
         for effect in self.activeEffects.keys():
             if self.activeEffects[effect] == 3:
+                if effect == 'incDefence':
+                    self.defence += 0.3
+                if effect == 'incAttack':
+                    self.attackPow += 0.3
                 if effect == 'zapped':
                     self.accuracy -= 0.2
-                if effect == 'frozen':
-                    self.isFrozen = True
-                    self.activeEffects[effect] = 0
                 if effect == 'burning':
                     self.defence -= 0.2
                 if effect == 'bleeding':
@@ -117,8 +122,6 @@ class Enemy:
                     self.defence -= 0.3
                 if effect == 'zapped':
                     self.accuracy += 0.2
-                if effect == 'frozen':
-                    self.isFrozen = False
                 if effect == 'burning':
                     self.defence += 0.2
                 self.activeEffects.pop(effect)
