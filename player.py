@@ -2,16 +2,18 @@ import rng
 import pygame
 
 
+
 class Player:
     def __init__(self):
-        self.max_health = 20.0
+        self.max_health = 10.0
         self.curr_health = self.max_health
         self.isFrozen = False
         self.defence = 0.0
-        self.attackPow = 1.0
+        self.attackPow = 2.0
         self.activeEffects = {}
         self.accuracy = 1.0
         self.alive = True
+        self.deathPlayed = False
         self.update_time = pygame.time.get_ticks()
         self.moveLengths = {'idle': 8, 'basicAttack': 11,'spinAttack': 19,'ultAttack':18,'fireBall':10, 'iceShard':10, 'lightningBolt': 10,'heal':19, 'incAttack':19,
                             'incDefence': 19, 'hurt' : 6, 'death':13 }
@@ -39,7 +41,7 @@ class Player:
             self.animation_list.append(temp_list)
 
     # update the image to get smooth animations, if death; stop refreshing frame index
-    def update(self, death=False):
+    def update(self, dead=False):
         # we check if alive here instead of recievedmg because we may die from bleeding too
         if self.curr_health < 1:
             self.alive = False
@@ -50,11 +52,15 @@ class Player:
         # check if enough time has passed for animation
         if pygame.time.get_ticks() - self.update_time > animation_cooldown:
             self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
-            if not death:
-                if self.frame_index >= len(self.animation_list[self.action]):
+            if not self.deathPlayed:
+                self.frame_index += 1
+            if self.frame_index >= len(self.animation_list[self.action]):
+                if self.action == 11:
+                    self.deathPlayed = True
+                else:
                     self.frame_index = 0
                     self.idle()
+
 
     # draw the current image to the screen
     def draw(self, screen):

@@ -17,3 +17,4 @@ def round(input, decimals=2):
     point = input.find('.')
     temp = input[0:point + decimals + 1]
     return float(temp)
+

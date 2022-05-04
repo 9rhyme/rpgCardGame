@@ -1,5 +1,8 @@
 import pygame
-from healthBar import  HealthBar
+
+
+from gui import HealthBar
+from gui import HoveringText
 from player import Player
 from enemy import Enemy
 import random
@@ -10,10 +13,12 @@ clock = pygame.time.Clock()
 # define game variables
 current_turn = 0 # 0: your turn , 1 : enemy's turn
 action_waitTime = 90
-action_cooldown = 90
+action_cooldown = 0
 fps = 60
 enemyAlive = False
 deathPlayed = False
+enemyDeathPlayed = False
+wantNextEnemy= True
 run = True
 pl_dmg = 0
 pl_effect = None
@@ -25,6 +30,9 @@ messages = []
 currMsg = 0
 messages.append('Currently testing')
 
+# hovering texts
+hovering_texts_group = pygame.sprite.Group()
+
 # screen variables
 screenWidth = 400
 screenHeight = 700
@@ -32,7 +40,8 @@ screen = pygame.display.set_mode((screenWidth,screenHeight))
 pygame.display.set_caption('Cards & Crypts')
 
 # define font
-font = pygame.font.SysFont('Jokerman',25)
+font1 = pygame.font.SysFont('Jokerman', 25)
+font2 = pygame.font.SysFont('Jokerman', 15)
 
 #define colors
 red = (255, 0, 0)
@@ -55,7 +64,7 @@ def draw_panel():
     #draw panel rectangle
     screen.blit(rpg_panel,(0,225))
     # draw text
-    draw_text(messages[currMsg],font,white,90,230)
+    draw_text(messages[currMsg], font1, white, 90, 230)
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     rect = img.get_rect(center=(screenWidth/2, 260))
@@ -63,12 +72,19 @@ def draw_text(text, font, text_col, x, y):
 
 # create a player
 knight = Player()
-playerHealthBar = HealthBar(50, 50, knight.curr_health, knight.max_health)
-
+playerHealthBar = HealthBar(65, 100, knight.curr_health, knight.max_health)
+#we don't want to see same enemy twice in a row
+previousEnemy = ''
 while run:
-    if not enemyAlive: # if there is not an alive enemy create one
-        opponent = Enemy(random.choice(list(Enemy.enemyTypes)), 1)
-        opponentHealthBar = HealthBar(270, 30, opponent.curr_health, opponent.max_health)
+    if not enemyAlive and wantNextEnemy:
+        wantNextEnemy = False# if there is not an alive enemy create one
+        # no repeating enemies
+        nextEnemy = random.choice(list(Enemy.enemyTypes))
+        while nextEnemy == previousEnemy:
+            nextEnemy = random.choice(list(Enemy.enemyTypes))
+        opponent = Enemy(nextEnemy, 1)
+        previousEnemy = opponent.type
+        opponentHealthBar = HealthBar(270, opponent.height, opponent.curr_health, opponent.max_health)
         enemyAlive = True
     # limit fps
     clock.tick(fps)
@@ -82,11 +98,19 @@ while run:
         knight.update()
     else:
         if knight.frame_index<len(knight.animation_list[11]):
-            knight.update(True)
+            knight.update()
     knight.draw(screen)
     # animate the enemy
-    opponent.update()
+    if opponent.alive:
+        opponent.update()
+    else:
+        if opponent.frame_index<len(opponent.animation_list[2]):
+            opponent.update()
     opponent.draw(screen)
+
+    #draw hovering text
+    hovering_texts_group.update()
+    hovering_texts_group.draw(screen)
 
     # enemy action:
     if opponent.alive:
@@ -96,12 +120,22 @@ while run:
                 en_dmg,en_effect = opponent.attack()
                 current_turn = 0
                 action_cooldown = 0
-    else:
-        enemyAlive = False
+    else: # wait until animation finishes
+        if enemyDeathPlayed:
+            enemyAlive = False
     # check if enemy dealt damage and if so make the player recieve it
     # sideNote: i also check if the enemy action is back to zero
     #           this way things progress after the attack animation is finished
     if en_dmg != 0 and opponent.action == 0:
+        # handle hovering tet over player
+        damage_text = HoveringText(95, 68, str(en_dmg), red, font2)
+        hovering_texts_group.add(damage_text)
+        if en_effect is not None:
+            effect_text = HoveringText(95,85, str(en_effect), red, font2)
+            hovering_texts_group.add(effect_text)
+
+
+        #make the player recieve damage
         knight.recieveDamage(en_dmg, en_effect)
         en_dmg = 0
         en_effect = None
@@ -129,31 +163,44 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        if event.type == pygame.KEYDOWN and movePermit:
-            if event.key == pygame.K_a:
+        if event.type == pygame.KEYDOWN :
+            if event.key == pygame.K_a and movePermit:
                 pl_dmg, pl_effect = knight.offensive('basicAttack', 1)
                 current_turn = 1
                 action_cooldown = 0
                 movePermit = False
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_s and movePermit:
                 pl_dmg, pl_effect = knight.offensive('spinAttack', 2)
                 current_turn = 1
                 action_cooldown = 0
                 movePermit = False
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_d and movePermit:
                 knight.defensive('heal')
+                temp = HoveringText(95,80,'heal',green,font2)
+                hovering_texts_group.add(temp)
+                print(knight.activeEffects)
                 current_turn = 1
                 action_cooldown = 0
                 movePermit = False
-            if event.key == pygame.K_f:
-                knight.isFrozen = not knight.isFrozen
-                print('switch')
+            if event.key == pygame.K_SPACE:
+                wantNextEnemy = True
+
     # same logic as the last time but for the opposite side
     if pl_dmg != 0 and knight.action == 0:
+        #handle the hovering text above enemy
+        damage_text = HoveringText(295, 68, str(pl_dmg), red, font2)
+        hovering_texts_group.add(damage_text)
+        if pl_effect is not None:
+            effect_text = HoveringText(295, 85, str(pl_effect), red, font2)
+            hovering_texts_group.add(effect_text)
         opponent.recieveDamage(pl_dmg, pl_effect)
         print(pl_effect)
         pl_dmg = 0
         pl_effect = None
+        # check if enemy is dead and the animation is finished
+    if opponent.curr_health == 0 and opponent.deathPlayed:
+        enemyDeathPlayed = True
+
 
 
 

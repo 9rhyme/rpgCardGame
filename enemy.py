@@ -3,8 +3,8 @@ import pygame
 
 
 class Enemy:
-    enemyTypes = {'mage': 'burning', 'oni': 'Bleeding'}
-    animationLengths = { 'mage': (12, 40), 'oni':(14,37)}
+    enemyTypes = {'mage': 'burning', 'oni': 'Bleeding','frost': 'frozen'}
+    animationLengths = { 'mage': (12, 40, 27), 'oni':(14, 37, 15), 'frost' : (14, 34, 13)}
 
     def __init__(self, type, level):
         self.level = level
@@ -12,7 +12,7 @@ class Enemy:
         self.isFrozen = False
         self.max_health = 50.0 + (self.level - 1) * 50 # enemies gain 50 hp each level
         self.curr_health = self.max_health
-
+        self.height = 80 # later use for larger enemies and their health bars
         self.type = type
         self.defence = 0.0
         self.attackPow = 10.0
@@ -23,8 +23,8 @@ class Enemy:
         self.animation_list = []
         self.frame_index = 0
         self.action = 0  # 0:idle, 1:basicAttack, ...
-        self.lengths = {'idle': self.animationLengths[self.type][0], 'attack': self.animationLengths[self.type][1]}
-
+        self.lengths = {'idle': self.animationLengths[self.type][0], 'attack': self.animationLengths[self.type][1], 'death' : self.animationLengths[self.type][2]}
+        self.deathPlayed= False
         self.loadSprites() # sprites are loaded when a new enemy is created
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
@@ -49,15 +49,20 @@ class Enemy:
         # check if enough time has passed for animation
         if pygame.time.get_ticks() - self.update_time > animation_cooldown:
             self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
+            if not self.deathPlayed:
+                self.frame_index += 1
             if self.action == 0:
                 if self.frame_index == self.lengths['idle']:
                     self.frame_index = 0
                     self.idle()
-            else:
+            elif self.action == 1:
                 if self.frame_index == self.lengths['attack']:
                     self.frame_index = 0
                     self.idle()
+            elif self.action == 2:
+                if self.frame_index == self.lengths['death']:
+                    self.deathPlayed = True
+
     # draw the enemy
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -68,6 +73,8 @@ class Enemy:
             self.applyEffect(effect)
         if self.curr_health < 1:
             self.curr_health = 0
+            self.action = 2
+            self.frame_index = 0
             self.alive = False
 
     # apply given effect to the enemy
