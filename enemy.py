@@ -3,19 +3,19 @@ import pygame
 
 
 class Enemy:
-    enemyTypes = {'mage': 'burning', 'oni': 'Bleeding','frost': 'frozen'}
+    enemyTypes = {'mage': 'burning', 'oni': 'bleeding','frost': 'frozen'}
     animationLengths = { 'mage': (12, 40, 27), 'oni':(14, 37, 15), 'frost' : (14, 34, 13)}
 
     def __init__(self, type, level):
         self.level = level
         self.alive = True
         self.isFrozen = False
-        self.max_health = 50.0 + (self.level - 1) * 50 # enemies gain 50 hp each level
+        self.max_health = 100.0 + (self.level - 1) * 50 # enemies gain 50 hp each level
         self.curr_health = self.max_health
         self.height = 80 # later use for larger enemies and their health bars
         self.type = type
         self.defence = 0.0
-        self.attackPow = 10.0
+        self.attackPow = 10.0 + (self.level - 1) * 3
         self.activeEffects = {}
         self.accuracy = 1.0
         self.passive = self.enemyTypes[type]
@@ -79,8 +79,11 @@ class Enemy:
 
     # apply given effect to the enemy
     def applyEffect(self, effect):
-        if effect not in self.activeEffects.keys():
-            self.activeEffects[effect] = 3
+        if effect == 'frozen':
+            self.isFrozen = True
+        else:
+            if effect not in self.activeEffects.keys():
+                self.activeEffects[effect] = 3
 
     # attack to the player
     def attack(self):
@@ -90,7 +93,7 @@ class Enemy:
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
         if rng.RNG_Outcome(self.accuracy):
-            dmg = rng.RNG_Shift(self.attackPow, 10)
+            dmg = rng.RNG_Shift(self.attackPow, 20)
             if rng.RNG_Outcome(0.1):
                 effect = self.passive
         return dmg, effect
@@ -103,32 +106,35 @@ class Enemy:
 
     # manage all passive effects active on the enemy
     def manageStatusEffects(self):
-        for effect in self.activeEffects.keys():
+        for effect in list(self.activeEffects):
             if self.activeEffects[effect] == 3:
                 if effect == 'incDefence':
                     self.defence += 0.3
                 if effect == 'incAttack':
                     self.attackPow += 0.3
                 if effect == 'zapped':
-                    self.accuracy -= 0.2
+                    self.accuracy -= 0.5
                 if effect == 'burning':
-                    self.defence -= 0.2
+                    self.defence -= 0.5
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health * 0.05
+                    self.curr_health -= self.max_health * 0.10
+                    print('health lost due to bleeding')
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 2:
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health * 0.05
+                    self.curr_health -= self.max_health *  0.1
+                    print('health lost due to bleeding')
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 1:
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health * 0.05
+                    self.curr_health -= self.max_health * 0.1
+                    print('health lost due to bleeding')
                 self.activeEffects[effect] -= 1
             else:
                 if effect == 'defence':
-                    self.defence -= 0.3
-                if effect == 'zapped':
-                    self.accuracy += 0.2
-                if effect == 'burning':
-                    self.defence += 0.2
+                    self.defence -= 0.2
+                elif effect == 'zapped':
+                    self.accuracy += 0.5
+                elif effect == 'burning':
+                    self.defence += 0.5
                 self.activeEffects.pop(effect)

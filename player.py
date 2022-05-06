@@ -5,11 +5,11 @@ import pygame
 
 class Player:
     def __init__(self):
-        self.max_health = 10.0
+        self.max_health = 1000.0
         self.curr_health = self.max_health
         self.isFrozen = False
         self.defence = 0.0
-        self.attackPow = 2.0
+        self.attackPow = 1.0
         self.activeEffects = {}
         self.accuracy = 1.0
         self.alive = True
@@ -19,7 +19,7 @@ class Player:
                             'incDefence': 19, 'hurt' : 6, 'death':13 }
         self.allMoves = {'idle': 0, 'basicAttack': 10, 'spinAttack': 17,'ultAttack': 25, 'fireBall': 20,'iceShard' : 20, 'lightningBolt': 23, 'heal': 30,
                          'incDefence': 0.3, 'incAttack' : 0.3}  # list of all moves
-        self.combatDeck = {'basicAttack': 10, 'fireball': 20, 'spinAttack': 17}  # list of available moves
+
 
         self.animation_list = []
         self.action = 0  # 0:idle, 1:basicAttack, 2 : spin ...
@@ -41,7 +41,7 @@ class Player:
             self.animation_list.append(temp_list)
 
     # update the image to get smooth animations, if death; stop refreshing frame index
-    def update(self, dead=False):
+    def update(self):
         # we check if alive here instead of recievedmg because we may die from bleeding too
         if self.curr_health < 1:
             self.alive = False
@@ -93,18 +93,18 @@ class Player:
                 self.activeEffects[effect] = 3
 
     # take offensive action
-    def offensive(self, attackType, action):
-        self.action = action
+    def offensive(self, attackType):
+        self.action = list(self.allMoves).index(attackType)
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
         dmg = 0
         effect = None
         outcome = rng.RNG_Outcome(self.accuracy)
         if outcome:
-            dmg = rng.RNG_Shift(self.attackPow * self.combatDeck[attackType], 10)
+            dmg = rng.RNG_Shift(self.attackPow * self.allMoves[attackType], 20)
             print(' you dealt', dmg, 'damage')
 
-        if rng.RNG_Outcome(0.15):
+        if rng.RNG_Outcome(0.2):
             effect = self.getPassive(attackType)
         return dmg, effect
 
@@ -137,32 +137,37 @@ class Player:
 
     # one method to
     def manageStatusEffects(self):
-        for effect in self.activeEffects.keys():
+        for effect in list(self.activeEffects):
             if self.activeEffects[effect] == 3:
                 if effect == 'incDefence':
-                    self.defence += 0.3
+                    self.defence += self.allMoves['incDefence']
                 if effect == 'incAttack':
-                    self.attackPow += 0.3
+                    self.attackPow += self.allMoves['incAttack']
                 if effect == 'zapped':
                     self.accuracy -= 0.2
                 if effect == 'burning':
                     self.defence -= 0.2
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health * 0.05
+                    self.curr_health -= self.max_health * 0.1
+                    print('health lost due to bleeding-----------------------')
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 2:
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health * 0.05
+                    self.curr_health -= self.max_health *  0.1
+                    print('health lost due to bleeding-----------------------')
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 1:
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health * 0.05
+                    self.curr_health -= self.max_health * 0.1
+                    print('health lost due to bleeding-------------------')
                 self.activeEffects[effect] -= 1
             else:
-                if effect == 'defence':
+                if effect == 'incDefence':
                     self.defence -= 0.3
-                if effect == 'zapped':
+                elif effect == 'zapped':
                     self.accuracy += 0.2
-                if effect == 'burning':
+                elif effect == 'incAttack':
+                    self.attackPow -= 0.3
+                elif effect == 'burning':
                     self.defence += 0.2
                 self.activeEffects.pop(effect)
