@@ -3,19 +3,19 @@ import pygame
 
 
 class Enemy:
-    enemyTypes = {'mage': 'burning', 'oni': 'bleeding','frost': 'frozen'}
-    animationLengths = { 'mage': (12, 40, 27), 'oni':(14, 37, 15), 'frost' : (14, 34, 13)}
+    enemyTypes = {'mage': 'burning', 'oni': 'bleeding','frost': 'frozen','electro':'zapped', 'zukro':'zapped'}
+    animationLengths = { 'mage': (12, 40, 27), 'oni':(14, 37, 15), 'frost' : (14, 34, 13), 'electro':(12,17,20), 'zukro':(10,31,11)}
 
     def __init__(self, type, level):
         self.level = level
         self.alive = True
         self.isFrozen = False
-        self.max_health = 100.0 + (self.level - 1) * 50 # enemies gain 50 hp each level
+        self.max_health = 100.0 + (self.level - 1) * 10 # enemies gain 10 hp each level
         self.curr_health = self.max_health
         self.height = 80 # later use for larger enemies and their health bars
         self.type = type
         self.defence = 0.0
-        self.attackPow = 10.0 + (self.level - 1) * 3
+        self.attackPow = 10.0 + (self.level - 1) * 2
         self.activeEffects = {}
         self.accuracy = 1.0
         self.passive = self.enemyTypes[type]
@@ -94,7 +94,7 @@ class Enemy:
         self.update_time = pygame.time.get_ticks()
         if rng.RNG_Outcome(self.accuracy):
             dmg = rng.RNG_Shift(self.attackPow, 20)
-            if rng.RNG_Outcome(0.1):
+            if rng.RNG_Outcome(0.8):
                 effect = self.passive
         return dmg, effect
 

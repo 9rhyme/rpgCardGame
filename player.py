@@ -15,7 +15,7 @@ class Player:
         self.alive = True
         self.deathPlayed = False
         self.update_time = pygame.time.get_ticks()
-        self.moveLengths = {'idle': 8, 'basicAttack': 11,'spinAttack': 19,'ultAttack':18,'fireBall':10, 'iceShard':10, 'lightningBolt': 10,'heal':19, 'incAttack':19,
+        self.moveLengths = {'idle': 8, 'basicAttack': 11,'spinAttack': 19,'ultAttack':18,'fireBall':10, 'iceShard':10, 'lightningBolt': 19,'heal':19, 'incAttack':19,
                             'incDefence': 19, 'hurt' : 6, 'death':13 }
         self.allMoves = {'idle': 0, 'basicAttack': 10, 'spinAttack': 17,'ultAttack': 25, 'fireBall': 20,'iceShard' : 20, 'lightningBolt': 23, 'heal': 30,
                          'incDefence': 0.3, 'incAttack' : 0.3}  # list of all moves
@@ -104,7 +104,7 @@ class Player:
             dmg = rng.RNG_Shift(self.attackPow * self.allMoves[attackType], 20)
             print(' you dealt', dmg, 'damage')
 
-        if rng.RNG_Outcome(0.2):
+        if rng.RNG_Outcome(0.8):
             effect = self.getPassive(attackType)
         return dmg, effect
 

@@ -35,7 +35,7 @@ class HoveringText(pygame.sprite.Sprite):
             self.rect.y -= 1
             # delete after few seconds
         self.counter += 1
-        if self.counter > 50:
+        if self.counter > 70:
             self.kill()
 
 
