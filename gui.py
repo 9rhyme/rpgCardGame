@@ -1,20 +1,22 @@
 import pygame
-class HealthBar: #class for handling healt bar ui element
-    def __init__(self, x, y, hp, max_hp,level = 0):
+
+
+class HealthBar:  # class for handling health bar ui element
+    def __init__(self, x, y, hp, max_hp, level=0):
         self.x = x
         self.y = y
         self.hp = hp
         self.max_hp = max_hp
         self.level = level
+
     # draw the bar
-    def draw(self, ratio, screen,heart_img,font=None):
+    def draw(self, ratio, screen, heart_img, font=None):
         pygame.draw.rect(screen, (255, 0, 0), (self.x, self.y, 75, 5))
         pygame.draw.rect(screen, (0, 255, 0), (self.x, self.y, 75 * ratio, 5))
-        screen.blit(heart_img,(self.x-13,self.y-5))
+        screen.blit(heart_img, (self.x - 13, self.y - 5))
         if self.level > 0:
-            lvl = HoveringText(self.x+17,self.y-7,'lvl '+str(self.level),(255, 255, 255),font,True)
+            lvl = HoveringText(self.x + 17, self.y - 7, 'lvl ' + str(self.level), (255, 255, 255), font, True)
             return lvl
-
 
 
 # a class for displaying hovering text
@@ -37,7 +39,3 @@ class HoveringText(pygame.sprite.Sprite):
         self.counter += 1
         if self.counter > 70:
             self.kill()
-
-
-
-

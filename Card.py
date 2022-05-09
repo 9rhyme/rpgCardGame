@@ -1,8 +1,6 @@
 import pygame
 
 WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-BLACK = (0, 0, 0)
 
 
 class Card(pygame.sprite.Sprite):
@@ -12,8 +10,10 @@ class Card(pygame.sprite.Sprite):
         self.name = filename.split('.')[0]
 
         self.original_image = pygame.image.load('images/aliens/' + filename)
-
+        self.original_image = pygame.transform.scale(self.original_image, (64, 96))
         self.back_image = pygame.image.load('images/aliens/' + filename)
+        self.back_image = pygame.transform.scale(self.back_image, (64, 96))
+
         pygame.draw.rect(self.back_image, WHITE, self.back_image.get_rect())
 
         self.image = self.back_image

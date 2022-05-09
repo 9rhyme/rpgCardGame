@@ -1,18 +1,20 @@
-import rng
 import pygame
+
+import rng
 
 
 class Enemy:
-    enemyTypes = {'mage': 'burning', 'oni': 'bleeding','frost': 'frozen','electro':'zapped', 'zukro':'zapped'}
-    animationLengths = { 'mage': (12, 40, 27), 'oni':(14, 37, 15), 'frost' : (14, 34, 13), 'electro':(12,17,20), 'zukro':(10,31,11)}
+    enemyTypes = {'mage': 'burning', 'oni': 'bleeding', 'frost': 'frozen', 'electro': 'zapped', 'zukro': 'zapped'}
+    animationLengths = {'mage': (12, 40, 27), 'oni': (14, 37, 15), 'frost': (14, 34, 13), 'electro': (12, 17, 20),
+                        'zukro': (10, 31, 11)}
 
     def __init__(self, type, level):
         self.level = level
         self.alive = True
         self.isFrozen = False
-        self.max_health = 100.0 + (self.level - 1) * 10 # enemies gain 10 hp each level
+        self.max_health = 100.0 + (self.level - 1) * 10  # enemies gain 10 hp each level
         self.curr_health = self.max_health
-        self.height = 80 # later use for larger enemies and their health bars
+        self.height = 80  # later use for larger enemies and their health bars
         self.type = type
         self.defence = 0.0
         self.attackPow = 10.0 + (self.level - 1) * 2
@@ -23,9 +25,10 @@ class Enemy:
         self.animation_list = []
         self.frame_index = 0
         self.action = 0  # 0:idle, 1:basicAttack, ...
-        self.lengths = {'idle': self.animationLengths[self.type][0], 'attack': self.animationLengths[self.type][1], 'death' : self.animationLengths[self.type][2]}
-        self.deathPlayed= False
-        self.loadSprites() # sprites are loaded when a new enemy is created
+        self.lengths = {'idle': self.animationLengths[self.type][0], 'attack': self.animationLengths[self.type][1],
+                        'death': self.animationLengths[self.type][2]}
+        self.deathPlayed = False
+        self.loadSprites()  # sprites are loaded when a new enemy is created
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (300, 120)
@@ -66,8 +69,9 @@ class Enemy:
     # draw the enemy
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-    # recieve damage and effects
-    def recieveDamage(self, dmg, effect=None):
+
+    # receive damage and effects
+    def receiveDamage(self, dmg, effect=None):
         self.curr_health -= dmg * (1 - self.defence)
         if effect is not None:
             self.applyEffect(effect)
@@ -122,7 +126,7 @@ class Enemy:
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 2:
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health *  0.1
+                    self.curr_health -= self.max_health * 0.1
                     print('health lost due to bleeding')
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 1:

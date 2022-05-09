@@ -1,6 +1,12 @@
-import rng
 import pygame
 
+import rng
+
+
+def getPassive(attackType):
+    passiveDict = {'basicAttack': None, 'spinAttack': 'bleeding', 'ultAttack': 'burning', 'fireBall': 'burning',
+                   'iceShard': 'frozen', 'lightningBolt': 'zapped'}
+    return passiveDict[attackType]
 
 
 class Player:
@@ -15,11 +21,12 @@ class Player:
         self.alive = True
         self.deathPlayed = False
         self.update_time = pygame.time.get_ticks()
-        self.moveLengths = {'idle': 8, 'basicAttack': 11,'spinAttack': 19,'ultAttack':18,'fireBall':10, 'iceShard':10, 'lightningBolt': 19,'heal':19, 'incAttack':19,
-                            'incDefence': 19, 'hurt' : 6, 'death':13 }
-        self.allMoves = {'idle': 0, 'basicAttack': 10, 'spinAttack': 17,'ultAttack': 25, 'fireBall': 20,'iceShard' : 20, 'lightningBolt': 23, 'heal': 30,
-                         'incDefence': 0.3, 'incAttack' : 0.3}  # list of all moves
-
+        self.moveLengths = {'idle': 8, 'basicAttack': 11, 'spinAttack': 19, 'ultAttack': 18, 'fireBall': 10,
+                            'iceShard': 10, 'lightningBolt': 19, 'heal': 19, 'incAttack': 19,
+                            'incDefence': 19, 'hurt': 6, 'death': 13}
+        self.allMoves = {'idle': 0, 'basicAttack': 10, 'spinAttack': 17, 'ultAttack': 25, 'fireBall': 20,
+                         'iceShard': 20, 'lightningBolt': 23, 'heal': 30,
+                         'incDefence': 0.3, 'incAttack': 0.3}  # list of all moves
 
         self.animation_list = []
         self.action = 0  # 0:idle, 1:basicAttack, 2 : spin ...
@@ -42,7 +49,7 @@ class Player:
 
     # update the image to get smooth animations, if death; stop refreshing frame index
     def update(self):
-        # we check if alive here instead of recievedmg because we may die from bleeding too
+        # we check if alive here instead of receivedmg because we may die from bleeding too
         if self.curr_health < 1:
             self.alive = False
         animation_cooldown = 60
@@ -61,7 +68,6 @@ class Player:
                     self.frame_index = 0
                     self.idle()
 
-
     # draw the current image to the screen
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -72,12 +78,12 @@ class Player:
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
 
-    # recieve damage, effects and play relevant animation
-    def recieveDamage(self, dmg, effect=None):
+    # receive damage, effects and play relevant animation
+    def receiveDamage(self, dmg, effect=None):
         if dmg == 0:
             print("Enemy missed.")
         else:
-            print(" You recieved", dmg, 'damage')
+            print(" You received", dmg, 'damage')
             self.action = 10
             self.frame_index = 0
             self.curr_health -= dmg * (1 - self.defence)
@@ -105,13 +111,10 @@ class Player:
             print(' you dealt', dmg, 'damage')
 
         if rng.RNG_Outcome(0.8):
-            effect = self.getPassive(attackType)
+            effect = getPassive(attackType)
         return dmg, effect
 
     # gets relative passive effect for attack types
-    def getPassive(self, attackType):
-        passiveDict = {'basicAttack': None, 'spinAttack': 'bleeding','ultAttack':'burning','fireBall':'burning', 'iceShard':'frozen', 'lightningBolt': 'zapped'}
-        return passiveDict[attackType]
 
     # take defensive action
     def defensive(self, moveType):
@@ -119,9 +122,9 @@ class Player:
             if moveType == 'heal':
                 self.action = 7
                 self.frame_index = 0
-                healAmount = rng.RNG_Shift(self.allMoves['heal']*self.max_health/100.0, 10)
+                healAmount = rng.RNG_Shift(self.allMoves['heal'] * self.max_health / 100.0, 10)
                 self.curr_health += healAmount
-                if self.curr_health>self.max_health:
+                if self.curr_health > self.max_health:
                     self.curr_health = self.max_health
                 print('you healed', healAmount)
             if moveType == 'incDefence':
@@ -153,7 +156,7 @@ class Player:
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 2:
                 if effect == 'bleeding':
-                    self.curr_health -= self.max_health *  0.1
+                    self.curr_health -= self.max_health * 0.1
                     print('health lost due to bleeding-----------------------')
                 self.activeEffects[effect] -= 1
             elif self.activeEffects[effect] == 1:
