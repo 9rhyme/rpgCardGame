@@ -14,7 +14,7 @@ pygame.init()
 
 # define game variables
 current_turn = 0  # 0: your turn , 1 : enemy's turn
-action_waitTime = 90
+action_waitTime = 70
 action_cooldown = 50
 
 en_attackMissed = False
@@ -71,15 +71,15 @@ rpg_background = pygame.transform.scale(rpg_background, (400, 225))
 heart_img = pygame.image.load('img/icons/heart.png')
 heart_img = pygame.transform.scale(heart_img, (15, 15))
 bleeding_icon = pygame.image.load('img/icons/bleeding.png')
-bleeding_icon = pygame.transform.scale(bleeding_icon, (25, 25))
+bleeding_icon = pygame.transform.scale(bleeding_icon, (30, 30))
 burning_icon = pygame.image.load('img/icons/burning.png')
-burning_icon = pygame.transform.scale(burning_icon, (25, 25))
+burning_icon = pygame.transform.scale(burning_icon, (30, 30))
 zapped_icon = pygame.image.load('img/icons/zapped.png')
-zapped_icon = pygame.transform.scale(zapped_icon, (25, 25))
+zapped_icon = pygame.transform.scale(zapped_icon, (30, 30))
 incAttack_icon = pygame.image.load('img/icons/incAttack.png')
-incAttack_icon = pygame.transform.scale(incAttack_icon, (25, 25))
+incAttack_icon = pygame.transform.scale(incAttack_icon, (30, 30))
 incDefence_icon = pygame.image.load('img/icons/incDefence.png')
-incDefence_icon = pygame.transform.scale(incDefence_icon, (25, 25))
+incDefence_icon = pygame.transform.scale(incDefence_icon, (30, 30))
 
 
 # drawing methods for ui elements
@@ -143,6 +143,7 @@ game = Game(screen)
 
 run = True
 while run:
+    clock.tick(FPS)
     # rpg part
     if gameState == 0:
         mainMenu()
@@ -399,6 +400,6 @@ while run:
                 elif gameState == 4:
                     gameState = 1
     pygame.display.update()
-    clock.tick(FPS)
+
 
 pygame.quit()
