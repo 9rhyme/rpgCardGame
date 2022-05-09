@@ -182,7 +182,8 @@ while run:
             enemyAlive = True
 
         # draw card game part
-        game.update(pygame.event.get())
+        picked_card = game.update(pygame.event.get())
+        print(picked_card)
         # draw recurring elements
         draw_bg()
         draw_panel()

@@ -18,7 +18,8 @@ class Game:
         self.level_complete = False
         self.screen = screen
         # aliens
-        self.all_aliens = [f for f in os.listdir('images/aliens') if os.path.join('images/aliens', f)]
+        # self.all_aliens = [f for f in os.listdir('images/aliens') if os.path.join('images/aliens', f)]
+        self.all_aliens = [f for f in os.listdir('img/cards/frontface/') if os.path.join('img/cards/frontface/', f)]
 
         self.img_width, self.img_height = (64, 96)
         self.padding = 10
@@ -53,9 +54,10 @@ class Game:
     def update(self, event_list):
         self.user_input(event_list)
         self.draw()
-        self.check_level_complete(event_list)
+        return self.check_level_complete(event_list)
 
     def check_level_complete(self, event_list):
+        return_value = None
         if not self.block_game:
             for event in event_list:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -67,9 +69,10 @@ class Game:
                                 if self.flipped[0] != self.flipped[1]:
                                     self.block_game = True
                                 else:
+                                    return_value = card.name
                                     self.flipped = []
-                                    for tile in self.cards_group:
-                                        if tile.shown:
+                                    for card_check in self.cards_group:
+                                        if card_check.shown:
                                             self.level_complete = True
                                         else:
                                             self.level_complete = False
@@ -84,6 +87,7 @@ class Game:
                     if card.name in self.flipped:
                         card.hide()
                 self.flipped = []
+        return return_value
 
     def generate_level(self):
         self.aliens = self.select_random_aliens()
@@ -102,7 +106,7 @@ class Game:
             self.cards_group.add(card)
 
     def select_random_aliens(self):
-        aliens = random.sample(self.all_aliens, 10)
+        aliens = random.sample(self.all_aliens, 5)
         aliens_copy = aliens.copy()
         aliens.extend(aliens_copy)
         random.shuffle(aliens)

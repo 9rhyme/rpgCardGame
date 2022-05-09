@@ -98,7 +98,6 @@ class Player:
             if effect not in self.activeEffects.keys():
                 self.activeEffects[effect] = 3
 
-
     # take offensive action
     def offensive(self, attackType):
         self.action = list(self.allMoves).index(attackType)
