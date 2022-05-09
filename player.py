@@ -98,6 +98,7 @@ class Player:
             if effect not in self.activeEffects.keys():
                 self.activeEffects[effect] = 3
 
+
     # take offensive action
     def offensive(self, attackType):
         self.action = list(self.allMoves).index(attackType)
@@ -110,7 +111,7 @@ class Player:
             dmg = rng.RNG_Shift(self.attackPow * self.allMoves[attackType], 20)
             print(' you dealt', dmg, 'damage')
 
-        if rng.RNG_Outcome(0.8):
+        if rng.RNG_Outcome(0.5):
             effect = getPassive(attackType)
         return dmg, effect
 

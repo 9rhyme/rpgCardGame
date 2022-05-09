@@ -1,19 +1,17 @@
-import random
-
 import pygame
-
 import rng
-from button import Button
-from enemy import Enemy
 from gui import HealthBar
 from gui import HoveringText
 from player import Player
+from enemy import Enemy
+from button import Button
+import random
 
 pygame.init()
 clock = pygame.time.Clock()
 
 # define game variables
-current_turn = 0  # 0: your turn , 1 : enemy's turn
+current_turn = 0 # 0: your turn , 1 : enemy's turn
 action_waitTime = 90
 action_cooldown = 50
 fps = 60
@@ -22,7 +20,7 @@ en_attackMissed = False
 pl_attackMissed = False
 initiateGame = False
 run = True
-gameState = 0  # 0: main menu, 1 game , -1 : game over, 2 : how to play, 4 : pause
+gameState = 0 # 0: main menu, 1 game , -1 : game over, 2 : how to play, 4 : pause
 pl_dmg = 0
 pl_effect = None
 en_dmg = 0
@@ -38,60 +36,57 @@ hovering_texts_group = pygame.sprite.Group()
 # screen variables
 screenWidth = 400
 screenHeight = 700
-screen = pygame.display.set_mode((screenWidth, screenHeight))
+screen = pygame.display.set_mode((screenWidth,screenHeight))
 pygame.display.set_caption('Cards & Crypts')
 
 # defined fonts
 font1 = pygame.font.SysFont('Forte', 25)
 font2 = pygame.font.SysFont('Jokerman', 15)
-font3 = pygame.font.SysFont('Calibri', 15)
+font3 = pygame.font.SysFont('Calibri',15)
 
-# define colors
+#define colors
 red = (255, 0, 0)
 green = (0, 255, 0)
-blue = (34, 34, 168)
+blue = (34,34,168)
 yellow = (255, 255, 0)
-white = (255, 255, 255)
+white = (255,255,255)
 eff_col = red
 
 # load necessary images
 # ui images and Button objects
 mainMenuImg = pygame.image.load('img/ui/mainMenu.png')
 startButtonImg = pygame.image.load('img/ui/startButton.png')
-startButton = Button(screen, 150, 500, startButtonImg, 187, 70)
+startButton = Button(screen,150,500,startButtonImg,187,70)
 menuButtonImg = pygame.image.load('img/ui/menuButton.png')
-menuButton = Button(screen, 150, 600, menuButtonImg, 187, 70)
+menuButton = Button(screen,150,600,menuButtonImg,187,70)
 gameOverScreen = pygame.image.load('img/ui/game_over_1.png')
-gameOverScreen = pygame.transform.scale(gameOverScreen, (400, 120))
+gameOverScreen = pygame.transform.scale(gameOverScreen,(400,120))
 pauseImg = pygame.image.load('img/ui/pause.png')
 rpg_panel = pygame.image.load('img/ui/panel.png')
-rpg_panel = pygame.transform.scale(rpg_panel, (400, 75))
+rpg_panel = pygame.transform.scale(rpg_panel,(400,75))
 # backgrounds
 rpg_background = pygame.image.load('img/backgrounds/rpg_back_4.png')
-rpg_background = pygame.transform.scale(rpg_background, (400, 225))
+rpg_background = pygame.transform.scale(rpg_background,(400,225))
 # Hud elements
 heart_img = pygame.image.load('img/icons/heart.png')
-heart_img = pygame.transform.scale(heart_img, (15, 15))
+heart_img = pygame.transform.scale(heart_img,(15,15))
 bleeding_icon = pygame.image.load('img/icons/bleeding.png')
-bleeding_icon = pygame.transform.scale(bleeding_icon, (25, 25))
+bleeding_icon = pygame.transform.scale(bleeding_icon,(30,30))
 burning_icon = pygame.image.load('img/icons/burning.png')
-burning_icon = pygame.transform.scale(burning_icon, (25, 25))
+burning_icon = pygame.transform.scale(burning_icon,(30,30))
 zapped_icon = pygame.image.load('img/icons/zapped.png')
-zapped_icon = pygame.transform.scale(zapped_icon, (25, 25))
+zapped_icon = pygame.transform.scale(zapped_icon,(30,30))
 incAttack_icon = pygame.image.load('img/icons/incAttack.png')
-incAttack_icon = pygame.transform.scale(incAttack_icon, (25, 25))
+incAttack_icon = pygame.transform.scale(incAttack_icon,(30,30))
 incDefence_icon = pygame.image.load('img/icons/incDefence.png')
-incDefence_icon = pygame.transform.scale(incDefence_icon, (25, 25))
-
+incDefence_icon = pygame.transform.scale(incDefence_icon,(30,30))
 
 # drawing methods for ui elements
 def draw_gameOver():
     global gameState
-    screen.blit(gameOverScreen, (0, 50))
+    screen.blit(gameOverScreen,(0,50))
     if menuButton.draw():
         gameState = 0
-
-
 def mainMenu():
     global gameState
     global initiateGame
@@ -99,27 +94,19 @@ def mainMenu():
     if startButton.draw():
         gameState = 1
         initiateGame = True
-        screen.fill(pygame.color.Color(0, 0, 0))
-
-
+        screen.fill(pygame.color.Color(0,0,0))
 def pause():
-    screen.blit(pauseImg, (50, 50))
-
-
+    screen.blit(pauseImg,(50,50))
 def draw_bg():
-    screen.blit(rpg_background, (0, 0))
-
-
+    screen.blit(rpg_background,(0,0))
 def draw_panel():
-    # draw panel rectangle
-    screen.blit(rpg_panel, (0, 225))
+    #draw panel rectangle
+    screen.blit(rpg_panel,(0,225))
     # draw text
-    # draw_text(messages[currMsg], font1, white, 90, 230)
-
-
+    #draw_text(messages[currMsg], font1, white, 90, 230)
 # draw status effects active on both the player and the enemy, sides: 0 player, 1 enemy
-def draw_statusIcons(effectsDict, side):
-    sides = (5, 370)
+def draw_statusIcons(effectsDict,side):
+    sides = (5,370)
     for effect in list(effectsDict):
         if effect == 'bleeding':
             screen.blit(bleeding_icon, (sides[side], 10))
@@ -133,10 +120,14 @@ def draw_statusIcons(effectsDict, side):
             screen.blit(incDefence_icon, (sides[side], 130))
 
 
+
+
+
 # def draw_text(text, font, text_col, x, y):
 #     img = font.render(text, True, text_col)
 #     rect = img.get_rect(center=(screenWidth/2, 260))
 #     screen.blit(img,rect)
+
 
 
 while run:
@@ -274,7 +265,7 @@ while run:
 
             # make the player recieve damage
             if knight.curr_health >= 1:
-                knight.receiveDamage(en_dmg, en_effect)
+                knight.recieveDamage(en_dmg, en_effect)
 
             en_dmg = 0
             en_effect = None
@@ -348,8 +339,10 @@ while run:
 
 
 
-    elif gameState == 4:  # pause
+    elif gameState == 4: #pause
         pause()
+
+
 
     # handle key inputs ( will be replaced with card minigame)
     for event in pygame.event.get():
@@ -397,9 +390,10 @@ while run:
             if event.key == pygame.K_SPACE:
                 wantNextEnemy = True
             if event.key == pygame.K_ESCAPE:
-                if gameState == 1:
+                if gameState == 1 :
                     gameState = 4
-                elif gameState == 4:
-                    gameState = 1
+                elif gameState == 4 :
+                    gameState =1
     pygame.display.update()
 pygame.quit()
+
