@@ -19,7 +19,7 @@ class Game:
         self.screen = screen
         # aliens
         # self.all_aliens = [f for f in os.listdir('images/aliens') if os.path.join('images/aliens', f)]
-        self.all_aliens = [f for f in os.listdir('img/cards/frontface/') if os.path.join('img/cards/frontface/', f)]
+        self.all_cards = [f for f in os.listdir('img/cards/frontface/') if os.path.join('img/cards/frontface/', f)]
 
         self.img_width, self.img_height = (64, 96)
         self.padding = 10
@@ -90,27 +90,28 @@ class Game:
         return return_value
 
     def generate_level(self):
-        self.aliens = self.select_random_aliens()
+        self.cards = self.select_random_cards()
         self.level_complete = False
-        self.generate_cardset(self.aliens)
+        self.generate_cardset()
 
-    def generate_cardset(self, aliens):
+    def generate_cardset(self):
+        self.cols = self.rows = self.cols if self.cols >= self.rows else self.rows
         CARDS_WIDTH = (self.img_width * self.cols + self.padding * 3)
         LEFT_MARGIN = (self.WINDOW_WIDTH - CARDS_WIDTH) // 2
         self.cards_group.empty()
 
-        for i in range(len(aliens)):
+        for i in range(len(self.cards)):
             x = LEFT_MARGIN + ((self.img_width + self.padding) * (i % self.cols))
             y = self.margin_top + (i // self.rows * (self.img_height + self.padding))
-            card = Card(aliens[i], x, y)
+            card = Card(self.cards[i], x, y)
             self.cards_group.add(card)
 
-    def select_random_aliens(self):
-        aliens = random.sample(self.all_aliens, 5)
-        aliens_copy = aliens.copy()
-        aliens.extend(aliens_copy)
-        random.shuffle(aliens)
-        return aliens
+    def select_random_cards(self):
+        cards = random.sample(self.all_cards, 5)
+        cards_copy = cards.copy()
+        cards.extend(cards_copy)
+        random.shuffle(cards)
+        return cards
 
     def user_input(self, event_list):
         for event in event_list:
