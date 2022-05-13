@@ -62,7 +62,7 @@ class Game:
             for event in event_list:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for card in self.cards_group:
-                        if card.rect.collidepoint(event.pos):
+                        if card.rect.collidepoint(event.pos) and card.shown is not True:
                             self.flipped.append(card.name)
                             card.show()
                             if len(self.flipped) == 2:
