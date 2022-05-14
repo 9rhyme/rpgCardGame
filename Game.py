@@ -17,16 +17,12 @@ class Game:
         self.WINDOW_HEIGHT = 300
         self.level_complete = False
         self.screen = screen
-        # aliens
-        # self.all_aliens = [f for f in os.listdir('images/aliens') if os.path.join('images/aliens', f)]
         self.all_cards = [f for f in os.listdir('img/cards/frontface/') if os.path.join('img/cards/frontface/', f)]
-
         self.img_width, self.img_height = (64, 96)
         self.padding = 10
         self.margin_top = 310
         self.cols = 5
         self.rows = 4
-
         self.cards_group = pygame.sprite.Group()
 
         # flipping & timing
@@ -37,19 +33,6 @@ class Game:
         # generate first level
         self.generate_level()
 
-        """
-        # initialize music
-        self.is_music_playing = True
-        self.sound_on = pygame.image.load('images/speaker.png').convert_alpha()
-        self.sound_off = pygame.image.load('images/mute.png').convert_alpha()
-        self.music_toggle = self.sound_on
-        self.music_toggle_rect = self.music_toggle.get_rect(topright=(self.WINDOW_WIDTH - 10, self.WINDOW_HEIGHT - 10))
-
-        # load music
-        pygame.mixer.music.load('sounds/bg-music.mp3')
-        pygame.mixer.music.set_volume(.2)
-        pygame.mixer.music.play()
-        """
 
     def update(self, event_list):
         self.user_input(event_list)
@@ -107,7 +90,7 @@ class Game:
             self.cards_group.add(card)
 
     def select_random_cards(self):
-        cards = random.sample(self.all_cards, 5)
+        cards = random.sample(self.all_cards, 10)
         cards_copy = cards.copy()
         cards.extend(cards_copy)
         random.shuffle(cards)
@@ -115,29 +98,18 @@ class Game:
 
     def user_input(self, event_list):
         for event in event_list:
-            """
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.music_toggle_rect.collidepoint(pygame.mouse.get_pos()):
-                    if self.is_music_playing:
-                        self.is_music_playing = False
-                        self.music_toggle = self.sound_off
-                        pygame.mixer.music.pause()
-                    else:
-                        self.is_music_playing = True
-                        self.music_toggle = self.sound_on
-                        pygame.mixer.music.unpause()
-            """
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and self.level_complete:
                     self.generate_level()
 
     def draw(self):
-        self.screen.fill(BLACK)
+        #self.screen.fill(BLACK)
 
         # fonts
-        content_font = pygame.font.Font('fonts/Little Alien.ttf', 24)
-        next_text = content_font.render('Level complete. Press Space for next level', True, WHITE)
-        next_rect = next_text.get_rect(midbottom=(self.WINDOW_WIDTH // 2, self.WINDOW_HEIGHT - 40))
+        content_font = pygame.font.Font('fonts/font_4.ttf', 24)
+        next_text = content_font.render('Press Space for New Deck', True, BLACK)
+        next_rect = next_text.get_rect(midbottom=(self.WINDOW_WIDTH // 2, self.WINDOW_HEIGHT -250))
 
         # pygame.draw.rect(self.screen, WHITE, (self.WINDOW_WIDTH - 90, 0, 100, 50))
         # self.screen.blit(self.music_toggle, self.music_toggle_rect)

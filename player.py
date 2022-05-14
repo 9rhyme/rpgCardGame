@@ -11,7 +11,7 @@ def getPassive(attackType):
 
 class Player:
     def __init__(self):
-        self.max_health = 1000.0
+        self.max_health = 200.0
         self.curr_health = self.max_health
         self.isFrozen = False
         self.defence = 0.0
@@ -166,11 +166,11 @@ class Player:
                 self.activeEffects[effect] -= 1
             else:
                 if effect == 'incDefence':
-                    self.defence -= 0.3
+                    self.defence -= self.allMoves['incDefence']
                 elif effect == 'zapped':
                     self.accuracy += 0.2
                 elif effect == 'incAttack':
-                    self.attackPow -= 0.3
+                    self.attackPow -= self.allMoves['incAttack']
                 elif effect == 'burning':
                     self.defence += 0.2
                 self.activeEffects.pop(effect)

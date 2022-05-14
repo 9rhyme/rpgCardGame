@@ -13,9 +13,11 @@ from player import Player
 pygame.init()
 
 # define game variables
+FPS = 60
+clock = pygame.time.Clock()
 current_turn = 0  # 0: your turn , 1 : enemy's turn
 action_waitTime = 70
-action_cooldown = 50
+action_cooldown = 0
 
 en_attackMissed = False
 pl_attackMissed = False
@@ -25,6 +27,7 @@ pl_dmg = 0
 pl_effect = None
 en_dmg = 0
 en_effect = None
+musicPlaying = False
 
 # variables for handling message panel ui element
 msgCounter = 0
@@ -40,9 +43,9 @@ screen = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption('Cards & Crypts')
 
 # defined fonts
-font1 = pygame.font.SysFont('Forte', 25)
-font2 = pygame.font.SysFont('Jokerman', 15)
-font3 = pygame.font.SysFont('Calibri', 15)
+font1 = pygame.font.Font('fonts/Forte.ttf', 25)
+font2 = pygame.font.Font('fonts/Jokerman.ttf', 15)
+font3 = pygame.font.Font('fonts/Calibri.ttf', 15)
 
 # define colors
 red = (255, 0, 0)
@@ -56,7 +59,9 @@ eff_col = red
 # ui images and Button objects
 mainMenuImg = pygame.image.load('img/ui/mainMenu.png')
 startButtonImg = pygame.image.load('img/ui/startButton.png')
-startButton = Button(screen, 150, 500, startButtonImg, 187, 70)
+startButton = Button(screen, 110, 500, startButtonImg, 187, 70)
+nextButtonImg = pygame.image.load('img/ui/nextButton.png')
+nextButton = Button(screen,130, 90,nextButtonImg,187,70)
 menuButtonImg = pygame.image.load('img/ui/menuButton.png')
 menuButton = Button(screen, 150, 600, menuButtonImg, 187, 70)
 gameOverScreen = pygame.image.load('img/ui/game_over_1.png')
@@ -86,16 +91,24 @@ incDefence_icon = pygame.transform.scale(incDefence_icon, (30, 30))
 def draw_gameOver():
     global gameState
     screen.blit(gameOverScreen, (0, 50))
+    if musicPlaying:
+        pygame.mixer.music.stop()
     if menuButton.draw():
         gameState = 0
 
 
 def mainMenu():
+    global musicPlaying
+    if not musicPlaying:
+        pygame.mixer.music.load('music/title.wav')
+        pygame.mixer.music.play(-1)
+        musicPlaying = True
     global gameState
     global initiateGame
-    screen.blit(mainMenuImg, (0, 0))
+    screen.blit(mainMenuImg, (0, 13))
     if startButton.draw():
         gameState = 1
+        musicPlaying = False
         initiateGame = True
         screen.fill(pygame.color.Color(0, 0, 0))
 
@@ -131,19 +144,25 @@ def draw_statusIcons(effectsDict, side):
             screen.blit(incDefence_icon, (sides[side], 130))
 
 
-# def draw_text(text, font, text_col, x, y):
-#     img = font.render(text, True, text_col)
-#     rect = img.get_rect(center=(screenWidth/2, 260))
-#     screen.blit(img,rect)
 
-FPS = 60
-clock = pygame.time.Clock()
-
+# initiate card game
 game = Game(screen)
 
 run = True
 while run:
     clock.tick(FPS)
+    # handle key inputs
+    eventlist = pygame.event.get()
+    for event in eventlist:
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                if gameState == 1:
+                    gameState = 4
+                elif gameState == 4:
+                    gameState = 1
+
     # rpg part
     if gameState == 0:
         mainMenu()
@@ -168,6 +187,10 @@ while run:
             initiateGame = False
 
     elif gameState == 1:
+        if not musicPlaying:
+            pygame.mixer.music.load('music/battle.wav')
+            pygame.mixer.music.play(-1)
+            musicPlaying = True
         if not enemyAlive and wantNextEnemy:  # if there is not an alive enemy create one
             wantNextEnemy = False
             # no repeating enemies
@@ -181,9 +204,7 @@ while run:
                                           opponent.level)
             enemyAlive = True
 
-        # draw card game part
-        picked_card = game.update(pygame.event.get())
-        print(picked_card)
+
         # draw recurring elements
         draw_bg()
         draw_panel()
@@ -225,16 +246,12 @@ while run:
         # enemy action:
         if opponent.alive:
             if current_turn == 1:
-
                 action_cooldown += 1  # if sufficient time passes do the move
                 if action_cooldown >= action_waitTime:
-
                     opponent.manageStatusEffects()
-
                     if opponent.isFrozen:
                         print('frozen turn lost')
                         current_turn = 0
-
                         action_cooldown = 0
                         opponent.isFrozen = False
                     else:
@@ -247,7 +264,14 @@ while run:
                     effectsManaged = False
         else:  # wait until animation finishes
             if enemyDeathPlayed:
+                current_turn = 0
                 enemyAlive = False
+        if not enemyAlive:
+            if nextButton.draw():
+                knight.curr_health = knight.max_health
+                wantNextEnemy = True
+                game.level_complete = True
+                current_turn = 0
         # check if enemy dealt damage and if so make the player receive it
         # sideNote: i also check if the enemy action is back to zero
         #           this way things progress after the attack animation is finished
@@ -348,58 +372,78 @@ while run:
         if opponent.curr_health == 0 and opponent.deathPlayed:
             enemyDeathPlayed = True
 
-    elif gameState == 4:  # pause
-        pause()
-
-    # handle key inputs ( will be replaced with card minigame)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a and movePermit:
+        # cards part
+        picked_card = game.update(eventlist)
+        if picked_card is not None:
+            if picked_card == 'basicAttack' and movePermit:
                 pl_dmg, pl_effect = knight.offensive('basicAttack')
                 if pl_dmg == 0:
                     pl_attackMissed = True
-                current_turn = 1
-                action_cooldown = 0
-                movePermit = False
-            if event.key == pygame.K_s and movePermit:
+
+            elif picked_card == 'spinAttack' and movePermit:
                 pl_dmg, pl_effect = knight.offensive('spinAttack')
                 if pl_dmg == 0:
                     pl_attackMissed = True
-                current_turn = 1
-                action_cooldown = 0
-                movePermit = False
-            if event.key == pygame.K_d and movePermit:
-                knight.defensive('heal')
-                temp = HoveringText(95, 80, 'heal', green, font2)
-                prompt = HoveringText(screenWidth / 2, 260, 'You Healed %30', green, font1, True)
-                messages.append(prompt)
-                hovering_texts_group.add(temp)
-                current_turn = 1
-                action_cooldown = 0
-                movePermit = False
-            if event.key == pygame.K_w and movePermit:
-                pl_dmg, pl_effect = knight.offensive('iceShard')
+
+            elif picked_card == 'ultAttack' and movePermit:
+                pl_dmg, pl_effect = knight.offensive('ultAttack')
                 if pl_dmg == 0:
                     pl_attackMissed = True
-                current_turn = 1
-                action_cooldown = 0
-                movePermit = False
-            if event.key == pygame.K_q and movePermit:
+
+            elif picked_card == 'heal' and movePermit:
+                knight.defensive('heal')
+                temp = HoveringText(95, 80, 'heal', green, font2)
+                prompt = HoveringText(screenWidth / 2, 260, 'You Healed', green, font1, True)
+                messages.append(prompt)
+                hovering_texts_group.add(temp)
+
+            elif picked_card == 'incAttack' and movePermit:
+                knight.defensive('incAttack')
+                temp = HoveringText(95, 80, 'incAttack', green, font2)
+                prompt = HoveringText(screenWidth / 2, 260, 'Your Attack Power Increased', green, font1, True)
+                messages.append(prompt)
+                hovering_texts_group.add(temp)
+
+            elif picked_card == 'incDefence' and movePermit:
+                knight.defensive('incDefence')
+                temp = HoveringText(95, 80, 'incDefence', green, font2)
+                prompt = HoveringText(screenWidth / 2, 260, 'Your Defence Increased', green, font1, True)
+                messages.append(prompt)
+                hovering_texts_group.add(temp)
+
+            elif picked_card == 'fireBall' and movePermit:
+                pl_dmg, pl_effect = knight.offensive('fireBall')
+                if pl_dmg == 0:
+                    pl_attackMissed = True
+
+            elif picked_card == 'lightningBolt' and movePermit:
                 pl_dmg, pl_effect = knight.offensive('lightningBolt')
                 if pl_dmg == 0:
                     pl_attackMissed = True
-                current_turn = 1
-                action_cooldown = 0
-                movePermit = False
-            if event.key == pygame.K_SPACE:
-                wantNextEnemy = True
-            if event.key == pygame.K_ESCAPE:
-                if gameState == 1:
-                    gameState = 4
-                elif gameState == 4:
-                    gameState = 1
+
+            elif picked_card == 'iceShard' and movePermit:
+                pl_dmg, pl_effect = knight.offensive('iceShard')
+                if pl_dmg == 0:
+                    pl_attackMissed = True
+
+            elif picked_card == 'stumble' and movePermit:
+                print('you stumbled and lost your turn')
+                prompt = HoveringText(screenWidth / 2, 260, 'You stumbled', red, font1, True)
+                messages.append(prompt)
+
+            current_turn = 1
+            action_cooldown = 0
+            movePermit = False
+            print(picked_card)
+
+    elif gameState == 4:  # pause
+        pause()
+
+
+
+    # draw card game part
+
+
     pygame.display.update()
 
 
