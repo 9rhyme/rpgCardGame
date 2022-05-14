@@ -61,7 +61,7 @@ mainMenuImg = pygame.image.load('img/ui/mainMenu.png')
 startButtonImg = pygame.image.load('img/ui/startButton.png')
 startButton = Button(screen, 110, 500, startButtonImg, 187, 70)
 nextButtonImg = pygame.image.load('img/ui/nextButton.png')
-nextButton = Button(screen,130, 90,nextButtonImg,187,70)
+nextButton = Button(screen, 130, 90, nextButtonImg, 187, 70)
 menuButtonImg = pygame.image.load('img/ui/menuButton.png')
 menuButton = Button(screen, 150, 600, menuButtonImg, 187, 70)
 gameOverScreen = pygame.image.load('img/ui/game_over_1.png')
@@ -144,10 +144,6 @@ def draw_statusIcons(effectsDict, side):
             screen.blit(incDefence_icon, (sides[side], 130))
 
 
-
-# initiate card game
-game = Game(screen)
-
 run = True
 while run:
     clock.tick(FPS)
@@ -185,6 +181,7 @@ while run:
             effectsManaged = False
             current_turn = 0
             initiateGame = False
+            started = True
 
     elif gameState == 1:
         if not musicPlaying:
@@ -203,7 +200,6 @@ while run:
             opponentHealthBar = HealthBar(270, opponent.height, opponent.curr_health, opponent.max_health,
                                           opponent.level)
             enemyAlive = True
-
 
         # draw recurring elements
         draw_bg()
@@ -234,6 +230,11 @@ while run:
         # draw hovering text
         hovering_texts_group.update()
         hovering_texts_group.draw(screen)
+
+        # initiate card game
+        if started:
+            game = Game(screen)
+            started = False
 
         # handle panel prompts
         msgCounter += 1
@@ -439,12 +440,6 @@ while run:
     elif gameState == 4:  # pause
         pause()
 
-
-
-    # draw card game part
-
-
     pygame.display.update()
-
 
 pygame.quit()

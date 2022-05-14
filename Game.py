@@ -18,11 +18,11 @@ class Game:
         self.level_complete = False
         self.screen = screen
         self.all_cards = [f for f in os.listdir('img/cards/frontface/') if os.path.join('img/cards/frontface/', f)]
-        self.img_width, self.img_height = (64, 96)
+        self.img_width, self.img_height = (70, 96)
         self.padding = 10
         self.margin_top = 310
         self.cols = 5
-        self.rows = 4
+        self.rows = 5
         self.cards_group = pygame.sprite.Group()
 
         # flipping & timing
@@ -32,7 +32,6 @@ class Game:
 
         # generate first level
         self.generate_level()
-
 
     def update(self, event_list):
         self.user_input(event_list)
@@ -48,9 +47,21 @@ class Game:
                         if card.rect.collidepoint(event.pos) and card.shown is not True:
                             self.flipped.append(card.name)
                             card.show()
+                            if card.name == "stumble":
+                                self.block_game = True
+                                return_value = card.name
+                                self.flipped = []
+                                for card_check in self.cards_group:
+                                    if card_check.shown:
+                                        self.level_complete = True
+                                    else:
+                                        self.level_complete = False
+                                        break
+                                return return_value
                             if len(self.flipped) == 2:
                                 if self.flipped[0] != self.flipped[1]:
                                     self.block_game = True
+                                    return_value = "wrong"
                                 else:
                                     return_value = card.name
                                     self.flipped = []
@@ -78,9 +89,8 @@ class Game:
         self.generate_cardset()
 
     def generate_cardset(self):
-        self.cols = self.rows = self.cols if self.cols >= self.rows else self.rows
         CARDS_WIDTH = (self.img_width * self.cols + self.padding * 3)
-        LEFT_MARGIN = (self.WINDOW_WIDTH - CARDS_WIDTH) // 2
+        LEFT_MARGIN = (self.WINDOW_WIDTH - CARDS_WIDTH) // 2 - 5
         self.cards_group.empty()
 
         for i in range(len(self.cards)):
@@ -88,6 +98,7 @@ class Game:
             y = self.margin_top + (i // self.rows * (self.img_height + self.padding))
             card = Card(self.cards[i], x, y)
             self.cards_group.add(card)
+        self.show_cards()
 
     def select_random_cards(self):
         cards = random.sample(self.all_cards, 10)
@@ -104,15 +115,10 @@ class Game:
                     self.generate_level()
 
     def draw(self):
-        #self.screen.fill(BLACK)
-
         # fonts
         content_font = pygame.font.Font('fonts/font_4.ttf', 24)
         next_text = content_font.render('Press Space for New Deck', True, BLACK)
-        next_rect = next_text.get_rect(midbottom=(self.WINDOW_WIDTH // 2, self.WINDOW_HEIGHT -250))
-
-        # pygame.draw.rect(self.screen, WHITE, (self.WINDOW_WIDTH - 90, 0, 100, 50))
-        # self.screen.blit(self.music_toggle, self.music_toggle_rect)
+        next_rect = next_text.get_rect(midbottom=(self.WINDOW_WIDTH // 2, self.WINDOW_HEIGHT - 250))
 
         # draw cardset
         self.cards_group.draw(self.screen)
@@ -120,3 +126,15 @@ class Game:
 
         if self.level_complete:
             self.screen.blit(next_text, next_rect)
+
+    def show_cards(self):
+        delay = 5
+        for card in self.cards_group:
+            card.show()
+        self.cards_group.update()
+        self.cards_group.draw(self.screen)
+        pygame.display.flip()
+        pygame.event.pump()
+        pygame.time.delay(1000 * delay)
+        for card in self.cards_group:
+            card.hide()
