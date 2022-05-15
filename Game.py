@@ -8,7 +8,8 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 FPS = 60
-
+action_waitTime = 70
+action_cooldown = 0
 
 class Game:
     def __init__(self, screen):
@@ -24,6 +25,7 @@ class Game:
         self.rows = 5
         self.cards_group = pygame.sprite.Group()
         self.clickPermit = False
+        self.cardsOpen = False
 
         # flipping & timing
         self.flipped = []
@@ -137,13 +139,15 @@ class Game:
             self.screen.blit(next_text, next_rect)
 
     def show_cards(self):
-        delay = 10
+        self.cardsOpen = True
         for card in self.cards_group:
             card.show()
         self.cards_group.update()
         self.cards_group.draw(self.screen)
         pygame.display.flip()
         pygame.event.pump()
-        pygame.time.delay(1000 * delay)
+
+    def hide_cards(self):
+        self.cardsOpen =False
         for card in self.cards_group:
             card.hide()

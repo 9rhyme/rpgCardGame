@@ -18,6 +18,9 @@ current_turn = 0  # 0: your turn , 1 : enemy's turn
 action_waitTime = 70
 action_cooldown = 0
 
+cardShowTime = 300
+cardCooldown = 0
+
 en_attackMissed = False
 pl_attackMissed = False
 initiateGame = False
@@ -474,6 +477,10 @@ while run:
         # cards part
         if knight.alive:
             picked_card = game.update(eventlist, clickPermit)
+            if game.cardsOpen:
+                cardCooldown+=1
+                if cardCooldown>= cardShowTime:
+                    game.hide_cards()
         if picked_card is not None:
             if picked_card == 'basicAttack':
                 pl_dmg, pl_effect = knight.offensive('basicAttack')
