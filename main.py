@@ -28,7 +28,6 @@ en_dmg = 0
 en_effect = None
 musicPlaying = False
 
-
 # variables for handling message panel ui element
 msgCounter = 0
 msgCooldown = 70
@@ -62,18 +61,35 @@ eff_col = red
 # load necessary images
 # ui images and Button objects
 mainMenuImg = pygame.image.load('img/ui/mainMenu.png')
+
 startButtonImg = pygame.image.load('img/ui/startButton.png')
 startButton = Button(screen, 110, 500, startButtonImg, 187, 70)
+
 nextButtonImg = pygame.image.load('img/ui/nextButton.png')
 nextButton = Button(screen, 110, 90, nextButtonImg, 187, 70)
+
 menuButtonImg = pygame.image.load('img/ui/menuButton.png')
-menuButton = Button(screen, 110, 300, menuButtonImg, 187, 70)
+menuButton = Button(screen, 110, 650, menuButtonImg, 187, 70)
+
+muteButtonImg1 = pygame.image.load('img/ui/mute.png')
+muteButtonImg2 = pygame.image.load('img/ui/unmute.png')
+muteButton = Button(screen,0,0,muteButtonImg1,38,32)
+muteState = 1
+
+howToButtonImg = pygame.image.load('img/ui/howToButton.png')
+howToButton = Button(screen,90, 570, howToButtonImg,226,38)
+howToImg = pygame.image.load('img/ui/howTo.png')
+
 gameOverScreen = pygame.image.load('img/ui/game_over_1.png')
 gameOverScreen = pygame.transform.scale(gameOverScreen, (400, 120))
+
 pauseImg = pygame.image.load('img/ui/pause.png')
 pauseImg = pygame.transform.scale(pauseImg,(163,53))
+
 rpg_panel = pygame.image.load('img/ui/panel.png')
 rpg_panel = pygame.transform.scale(rpg_panel, (400, 75))
+
+
 # backgrounds
 rpg_background = pygame.image.load('img/backgrounds/rpg_back_4.png')
 rpg_background = pygame.transform.scale(rpg_background, (400, 225))
@@ -92,39 +108,83 @@ incDefence_icon = pygame.image.load('img/icons/incDefence.png')
 incDefence_icon = pygame.transform.scale(incDefence_icon, (30, 30))
 
 
+def musicSwitch():
+    global musicPlaying
+    if musicPlaying:
+        pygame.mixer.music.pause()
+        musicPlaying = False
+    else:
+        pygame.mixer.music.unpause()
+        musicPlaying = True
 # drawing methods for ui elements
 def draw_gameOver():
     global gameState
     global musicPlaying
+    global muteState
     screen.blit(gameOverScreen, (0, 50))
-    if not musicPlaying:
-        pygame.mixer.music.load('music/end.wav')
-        pygame.mixer.music.play(-1)
-        musicPlaying = True
+
 
     if menuButton.draw():
         gameState = 0
-        musicPlaying = False
+        pygame.mixer.music.load('music/title.wav')
+        pygame.mixer.music.play(-1)
+        musicPlaying = True
+        if muteState == -1:
+            pygame.mixer.music.pause()
+            musicPlaying = False
 
 
 def mainMenu():
     global musicPlaying
-    if not musicPlaying:
+
+    global muteState
+    if not musicPlaying  and muteState == 1:
         pygame.mixer.music.load('music/title.wav')
         pygame.mixer.music.play(-1)
         musicPlaying = True
     global gameState
     global initiateGame
     screen.blit(mainMenuImg, (0, 0))
+    if muteButton.draw():
+        if muteState == 1:
+            muteButton.image = muteButtonImg2
+            muteState = -1
+        else:
+            muteButton.image = muteButtonImg1
+            muteState = 1
+        musicSwitch()
+    if howToButton.draw():
+        gameState = 2
+
     if startButton.draw():
         gameState = 1
-        musicPlaying = False
+        pygame.mixer.music.load('music/battle.wav')
+        pygame.mixer.music.play(-1)
+        if muteState == -1:
+            musicPlaying = False
+            pygame.mixer.music.pause()
         initiateGame = True
         screen.fill(pygame.color.Color(0, 0, 0))
 
 
 def pause():
     screen.blit(pauseImg, (120, 40))
+
+def howTo():
+    global gameState
+    global muteState
+    screen.blit(mainMenuImg,(0,0))
+    screen.blit(howToImg, (0, 0))
+    if muteButton.draw():
+        if muteState == 1:
+            muteButton.image = muteButtonImg2
+            muteState = -1
+        else:
+            muteButton.image = muteButtonImg1
+            muteState = 1
+        musicSwitch()
+    if menuButton.draw():
+        gameState = 0
 
 
 def draw_bg():
@@ -164,10 +224,19 @@ while run:
             run = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+
                 if gameState == 1:
+                    temp = muteState
                     gameState = 4
+                    if muteState == 1:
+                        musicSwitch()
+                        muteState = -1
                 elif gameState == 4:
                     gameState = 1
+                    if temp == 1:
+                        musicSwitch()
+                        muteState = 1
+
 
     # rpg part
     if gameState == 0:
@@ -195,10 +264,8 @@ while run:
             clickPermit = True
 
     elif gameState == 1:
-        if not musicPlaying and knight.alive:
-            pygame.mixer.music.load('music/battle.wav')
-            pygame.mixer.music.play(-1)
-            musicPlaying = True
+
+
         if not enemyAlive and wantNextEnemy:  # if there is not an alive enemy create one
             current_turn = 0
             clickPermit = True
@@ -220,6 +287,15 @@ while run:
         draw_statusIcons(knight.activeEffects, 0)
         draw_statusIcons(opponent.activeEffects, 1)
         playerHealthBar.draw(knight.curr_health / knight.max_health, screen, heart_img)
+
+        if muteButton.draw():
+            if muteState == 1:
+                muteButton.image = muteButtonImg2
+                muteState = -1
+            else:
+                muteButton.image = muteButtonImg1
+                muteState = 1
+            musicSwitch()
 
         if opponent.alive:
             lvl = opponentHealthBar.draw(opponent.curr_health / opponent.max_health, screen, heart_img, font3)
@@ -345,11 +421,17 @@ while run:
 
         else:  # handle death animation
             if not deathPlayed:
+                pygame.mixer.music.load('music/end.wav')
+                pygame.mixer.music.play(-1)
+                musicPlaying = True
+                if muteState == -1:
+                    musicPlaying = False
+                    pygame.mixer.music.pause()
                 knight.action = 11
                 knight.frame_index = 0
                 deathPlayed = True
-                musicPlaying = False
             else:
+
                 draw_gameOver()
         if not knight.alive:
             current_turn = 2  # stop enemies from attacking after player is dead
@@ -457,6 +539,8 @@ while run:
             clickPermit = False
             print(picked_card)
 
+    elif gameState == 2:
+        howTo()
 
     elif gameState == 4:  # pause
         pause()

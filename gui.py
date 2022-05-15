@@ -14,13 +14,14 @@ class HealthBar:  # class for handling health bar ui element
         pygame.draw.rect(screen, (255, 0, 0), (self.x, self.y, 75, 5))
         pygame.draw.rect(screen, (0, 255, 0), (self.x, self.y, 75 * ratio, 5))
         screen.blit(heart_img, (self.x - 13, self.y - 5))
+        # in case of enemies level is also shown
         if self.level > 0:
             lvl = HoveringText(self.x + 17, self.y - 7, 'lvl ' + str(self.level), (255, 255, 255), font, True)
             return lvl
 
 
 # a class for displaying hovering text
-class HoveringText(pygame.sprite.Sprite):
+class HoveringText(pygame.sprite.Sprite): # this class inherits Sprite class from pygame
 
     def __init__(self, x, y, text, color, font, stationary=False):
         pygame.sprite.Sprite.__init__(self)
