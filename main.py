@@ -270,6 +270,8 @@ while run:
 
         if not enemyAlive and wantNextEnemy:  # if there is not an alive enemy create one
             current_turn = 0
+            en_dmg = 0
+            en_effect = None
             clickPermit = True
             wantNextEnemy = False
             # no repeating enemies
@@ -279,6 +281,11 @@ while run:
             opponent = Enemy(nextEnemy, previousEnemyLvl + 1)
             previousEnemy = opponent.type
             previousEnemyLvl += 1
+
+
+            knight.max_health += 5*(previousEnemyLvl-1)
+            knight.curr_health = knight.max_health
+            knight.attackPow += previousEnemyLvl-1
             opponentHealthBar = HealthBar(270, 100, opponent.curr_health, opponent.max_health,
                                           opponent.level)
             enemyAlive = True
@@ -481,6 +488,7 @@ while run:
                 cardCooldown+=1
                 if cardCooldown>= cardShowTime:
                     game.hide_cards()
+                    cardCooldown = 0
         if picked_card is not None:
             if picked_card == 'basicAttack':
                 pl_dmg, pl_effect = knight.offensive('basicAttack')
