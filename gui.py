@@ -21,7 +21,7 @@ class HealthBar:  # class for handling health bar ui element
 
 
 # a class for displaying hovering text
-class HoveringText(pygame.sprite.Sprite): # this class inherits Sprite class from pygame
+class HoveringText(pygame.sprite.Sprite):  # this class inherits Sprite class from pygame
 
     def __init__(self, x, y, text, color, font, stationary=False):
         pygame.sprite.Sprite.__init__(self)

@@ -73,22 +73,21 @@ menuButton = Button(screen, 110, 650, menuButtonImg, 187, 70)
 
 muteButtonImg1 = pygame.image.load('img/ui/mute.png')
 muteButtonImg2 = pygame.image.load('img/ui/unmute.png')
-muteButton = Button(screen,0,0,muteButtonImg1,38,32)
+muteButton = Button(screen, 0, 0, muteButtonImg1, 38, 32)
 muteState = 1
 
 howToButtonImg = pygame.image.load('img/ui/howToButton.png')
-howToButton = Button(screen,90, 570, howToButtonImg,226,38)
+howToButton = Button(screen, 90, 570, howToButtonImg, 226, 38)
 howToImg = pygame.image.load('img/ui/howTo.png')
 
 gameOverScreen = pygame.image.load('img/ui/game_over_1.png')
 gameOverScreen = pygame.transform.scale(gameOverScreen, (400, 120))
 
 pauseImg = pygame.image.load('img/ui/pause.png')
-pauseImg = pygame.transform.scale(pauseImg,(163,53))
+pauseImg = pygame.transform.scale(pauseImg, (163, 53))
 
 rpg_panel = pygame.image.load('img/ui/panel.png')
 rpg_panel = pygame.transform.scale(rpg_panel, (400, 75))
-
 
 # backgrounds
 rpg_background = pygame.image.load('img/backgrounds/rpg_back_4.png')
@@ -116,13 +115,14 @@ def musicSwitch():
     else:
         pygame.mixer.music.unpause()
         musicPlaying = True
+
+
 # drawing methods for ui elements
 def draw_gameOver():
     global gameState
     global musicPlaying
     global muteState
     screen.blit(gameOverScreen, (0, 50))
-
 
     if menuButton.draw():
         gameState = 0
@@ -138,7 +138,7 @@ def mainMenu():
     global musicPlaying
 
     global muteState
-    if not musicPlaying  and muteState == 1:
+    if not musicPlaying and muteState == 1:
         pygame.mixer.music.load('music/title.wav')
         pygame.mixer.music.play(-1)
         musicPlaying = True
@@ -170,10 +170,11 @@ def mainMenu():
 def pause():
     screen.blit(pauseImg, (120, 40))
 
+
 def howTo():
     global gameState
     global muteState
-    screen.blit(mainMenuImg,(0,0))
+    screen.blit(mainMenuImg, (0, 0))
     screen.blit(howToImg, (0, 0))
     if muteButton.draw():
         if muteState == 1:
@@ -237,7 +238,6 @@ while run:
                         musicSwitch()
                         muteState = 1
 
-
     # rpg part
     if gameState == 0:
         mainMenu()
@@ -264,7 +264,6 @@ while run:
             clickPermit = True
 
     elif gameState == 1:
-
 
         if not enemyAlive and wantNextEnemy:  # if there is not an alive enemy create one
             current_turn = 0
@@ -436,7 +435,6 @@ while run:
         if not knight.alive:
             current_turn = 2  # stop enemies from attacking after player is dead
 
-
         if pl_attackMissed and knight.action == 0:
             prompt = HoveringText(screenWidth / 2, 260, 'You Missed', white, font1, True)
             messages.append(prompt)
@@ -475,9 +473,9 @@ while run:
 
         # cards part
         if knight.alive:
-            picked_card = game.update(eventlist,clickPermit)
+            picked_card = game.update(eventlist, clickPermit)
         if picked_card is not None:
-            if picked_card == 'basicAttack' :
+            if picked_card == 'basicAttack':
                 pl_dmg, pl_effect = knight.offensive('basicAttack')
                 if pl_dmg == 0:
                     pl_attackMissed = True
@@ -506,19 +504,19 @@ while run:
                 messages.append(prompt)
                 hovering_texts_group.add(temp)
 
-            elif picked_card == 'incDefence' :
+            elif picked_card == 'incDefence':
                 knight.defensive('incDefence')
                 temp = HoveringText(95, 80, 'incDefence', green, font2)
                 prompt = HoveringText(screenWidth / 2, 260, 'Your Defence Increased', green, font1, True)
                 messages.append(prompt)
                 hovering_texts_group.add(temp)
 
-            elif picked_card == 'fireBall' :
+            elif picked_card == 'fireBall':
                 pl_dmg, pl_effect = knight.offensive('fireBall')
                 if pl_dmg == 0:
                     pl_attackMissed = True
 
-            elif picked_card == 'lightningBolt' :
+            elif picked_card == 'lightningBolt':
                 pl_dmg, pl_effect = knight.offensive('lightningBolt')
                 if pl_dmg == 0:
                     pl_attackMissed = True

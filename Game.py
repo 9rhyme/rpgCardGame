@@ -33,7 +33,7 @@ class Game:
         # generate first level
         self.generate_level()
 
-    def update(self, event_list,clickPermit = False):
+    def update(self, event_list, clickPermit=False):
         self.clickPermit = clickPermit
         self.user_input(event_list)
         self.draw()
@@ -48,11 +48,13 @@ class Game:
                         if card.rect.collidepoint(event.pos) and card.shown is not True:
                             self.flipped.append(card.name)
                             card.show()
-                            if card.name == "stumble":
+                            if card.name == "stumble" and len(self.flipped) == 1:
                                 self.block_game = True
                                 return_value = card.name
                                 self.flipped = []
                                 for card_check in self.cards_group:
+                                    if card_check.name == "stumble":
+                                        continue
                                     if card_check.shown:
                                         self.level_complete = True
                                     else:
@@ -60,13 +62,19 @@ class Game:
                                         break
                                 return return_value
                             if len(self.flipped) == 2:
-                                if self.flipped[0] != self.flipped[1]:
+                                if self.flipped[1] == "stumble":
+                                    self.flipped.pop()
+                                    self.block_game = True
+                                    return_value = "stumble"
+                                elif self.flipped[0] != self.flipped[1]:
                                     self.block_game = True
                                     return_value = "wrong"
                                 else:
                                     return_value = card.name
                                     self.flipped = []
                                     for card_check in self.cards_group:
+                                        if card_check.name == "stumble":
+                                            continue
                                         if card_check.shown:
                                             self.level_complete = True
                                         else:
@@ -129,7 +137,7 @@ class Game:
             self.screen.blit(next_text, next_rect)
 
     def show_cards(self):
-        delay = 5
+        delay = 10
         for card in self.cards_group:
             card.show()
         self.cards_group.update()
