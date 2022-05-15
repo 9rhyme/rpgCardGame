@@ -11,7 +11,6 @@ from gui import HoveringText
 from player import Player
 
 pygame.init()
-
 # define game variables
 FPS = 60
 clock = pygame.time.Clock()
@@ -28,6 +27,7 @@ pl_effect = None
 en_dmg = 0
 en_effect = None
 musicPlaying = False
+
 
 # variables for handling message panel ui element
 msgCounter = 0
@@ -61,12 +61,13 @@ mainMenuImg = pygame.image.load('img/ui/mainMenu.png')
 startButtonImg = pygame.image.load('img/ui/startButton.png')
 startButton = Button(screen, 110, 500, startButtonImg, 187, 70)
 nextButtonImg = pygame.image.load('img/ui/nextButton.png')
-nextButton = Button(screen, 130, 90, nextButtonImg, 187, 70)
+nextButton = Button(screen, 110, 90, nextButtonImg, 187, 70)
 menuButtonImg = pygame.image.load('img/ui/menuButton.png')
-menuButton = Button(screen, 150, 600, menuButtonImg, 187, 70)
+menuButton = Button(screen, 110, 300, menuButtonImg, 187, 70)
 gameOverScreen = pygame.image.load('img/ui/game_over_1.png')
 gameOverScreen = pygame.transform.scale(gameOverScreen, (400, 120))
 pauseImg = pygame.image.load('img/ui/pause.png')
+pauseImg = pygame.transform.scale(pauseImg,(163,53))
 rpg_panel = pygame.image.load('img/ui/panel.png')
 rpg_panel = pygame.transform.scale(rpg_panel, (400, 75))
 # backgrounds
@@ -90,11 +91,16 @@ incDefence_icon = pygame.transform.scale(incDefence_icon, (30, 30))
 # drawing methods for ui elements
 def draw_gameOver():
     global gameState
+    global musicPlaying
     screen.blit(gameOverScreen, (0, 50))
-    if musicPlaying:
-        pygame.mixer.music.stop()
+    if not musicPlaying:
+        pygame.mixer.music.load('music/end.wav')
+        pygame.mixer.music.play(-1)
+        musicPlaying = True
+
     if menuButton.draw():
         gameState = 0
+        musicPlaying = False
 
 
 def mainMenu():
@@ -105,7 +111,7 @@ def mainMenu():
         musicPlaying = True
     global gameState
     global initiateGame
-    screen.blit(mainMenuImg, (0, 13))
+    screen.blit(mainMenuImg, (0, 0))
     if startButton.draw():
         gameState = 1
         musicPlaying = False
@@ -114,7 +120,7 @@ def mainMenu():
 
 
 def pause():
-    screen.blit(pauseImg, (50, 50))
+    screen.blit(pauseImg, (120, 40))
 
 
 def draw_bg():
@@ -182,13 +188,16 @@ while run:
             current_turn = 0
             initiateGame = False
             started = True
+            clickPermit = True
 
     elif gameState == 1:
-        if not musicPlaying:
+        if not musicPlaying and knight.alive:
             pygame.mixer.music.load('music/battle.wav')
             pygame.mixer.music.play(-1)
             musicPlaying = True
         if not enemyAlive and wantNextEnemy:  # if there is not an alive enemy create one
+            current_turn = 0
+            clickPermit = True
             wantNextEnemy = False
             # no repeating enemies
             nextEnemy = random.choice(list(Enemy.enemyTypes))
@@ -197,7 +206,7 @@ while run:
             opponent = Enemy(nextEnemy, previousEnemyLvl + 1)
             previousEnemy = opponent.type
             previousEnemyLvl += 1
-            opponentHealthBar = HealthBar(270, opponent.height, opponent.curr_health, opponent.max_health,
+            opponentHealthBar = HealthBar(270, 100, opponent.curr_health, opponent.max_health,
                                           opponent.level)
             enemyAlive = True
 
@@ -255,6 +264,7 @@ while run:
                         current_turn = 0
                         action_cooldown = 0
                         opponent.isFrozen = False
+                        clickPermit = True
                     else:
                         en_dmg, en_effect = opponent.attack()
                         if en_dmg == 0:
@@ -280,9 +290,10 @@ while run:
             prompt = HoveringText(screenWidth / 2, 260, 'Enemy Missed', white, font1, True)
             messages.append(prompt)
             en_attackMissed = False
+            clickPermit = True
         if en_dmg != 0 and opponent.action == 0:
-            # handle hovering text over player
-
+            if en_effect != 'frozen':
+                clickPermit = True
             if knight.alive:
                 damage_text = HoveringText(95, 68, str(rng.round(en_dmg * (1 - knight.defence))), red, font2)
                 prompt = HoveringText(screenWidth / 2, 260,
@@ -304,7 +315,7 @@ while run:
                     hovering_texts_group.add(effect_text)
 
             # make the player receive damage
-            if knight.curr_health >= 1:
+            if knight.curr_health >= 1 and enemyAlive:
                 knight.receiveDamage(en_dmg, en_effect)
 
             en_dmg = 0
@@ -315,7 +326,7 @@ while run:
             knight.manageStatusEffects()
             effectsManaged = True
         # handle player action
-        movePermit = False
+
         if knight.alive:
             if current_turn == 0:
                 action_cooldown += 1
@@ -326,16 +337,19 @@ while run:
                         current_turn = 1
                         action_cooldown = 0
                         knight.isFrozen = False
-                    else:
-                        movePermit = True
+
+
         else:  # handle death animation
             if not deathPlayed:
                 knight.action = 11
                 knight.frame_index = 0
                 deathPlayed = True
+                musicPlaying = False
+            else:
+                draw_gameOver()
         if not knight.alive:
             current_turn = 2  # stop enemies from attacking after player is dead
-            draw_gameOver()
+
 
         if pl_attackMissed and knight.action == 0:
             prompt = HoveringText(screenWidth / 2, 260, 'You Missed', white, font1, True)
@@ -374,68 +388,71 @@ while run:
             enemyDeathPlayed = True
 
         # cards part
-        picked_card = game.update(eventlist)
+        if knight.alive:
+            picked_card = game.update(eventlist,clickPermit)
         if picked_card is not None:
-            if picked_card == 'basicAttack' and movePermit:
+            if picked_card == 'basicAttack' :
                 pl_dmg, pl_effect = knight.offensive('basicAttack')
                 if pl_dmg == 0:
                     pl_attackMissed = True
 
-            elif picked_card == 'spinAttack' and movePermit:
+            elif picked_card == 'spinAttack':
                 pl_dmg, pl_effect = knight.offensive('spinAttack')
                 if pl_dmg == 0:
                     pl_attackMissed = True
 
-            elif picked_card == 'ultAttack' and movePermit:
+            elif picked_card == 'ultAttack':
                 pl_dmg, pl_effect = knight.offensive('ultAttack')
                 if pl_dmg == 0:
                     pl_attackMissed = True
 
-            elif picked_card == 'heal' and movePermit:
+            elif picked_card == 'heal':
                 knight.defensive('heal')
                 temp = HoveringText(95, 80, 'heal', green, font2)
                 prompt = HoveringText(screenWidth / 2, 260, 'You Healed', green, font1, True)
                 messages.append(prompt)
                 hovering_texts_group.add(temp)
 
-            elif picked_card == 'incAttack' and movePermit:
+            elif picked_card == 'incAttack':
                 knight.defensive('incAttack')
                 temp = HoveringText(95, 80, 'incAttack', green, font2)
                 prompt = HoveringText(screenWidth / 2, 260, 'Your Attack Power Increased', green, font1, True)
                 messages.append(prompt)
                 hovering_texts_group.add(temp)
 
-            elif picked_card == 'incDefence' and movePermit:
+            elif picked_card == 'incDefence' :
                 knight.defensive('incDefence')
                 temp = HoveringText(95, 80, 'incDefence', green, font2)
                 prompt = HoveringText(screenWidth / 2, 260, 'Your Defence Increased', green, font1, True)
                 messages.append(prompt)
                 hovering_texts_group.add(temp)
 
-            elif picked_card == 'fireBall' and movePermit:
+            elif picked_card == 'fireBall' :
                 pl_dmg, pl_effect = knight.offensive('fireBall')
                 if pl_dmg == 0:
                     pl_attackMissed = True
 
-            elif picked_card == 'lightningBolt' and movePermit:
+            elif picked_card == 'lightningBolt' :
                 pl_dmg, pl_effect = knight.offensive('lightningBolt')
                 if pl_dmg == 0:
                     pl_attackMissed = True
 
-            elif picked_card == 'iceShard' and movePermit:
+            elif picked_card == 'iceShard':
                 pl_dmg, pl_effect = knight.offensive('iceShard')
                 if pl_dmg == 0:
                     pl_attackMissed = True
 
-            elif picked_card == 'stumble' and movePermit:
+            elif picked_card == 'stumble':
                 print('you stumbled and lost your turn')
                 prompt = HoveringText(screenWidth / 2, 260, 'You stumbled', red, font1, True)
                 messages.append(prompt)
 
             current_turn = 1
             action_cooldown = 0
-            movePermit = False
+
+            clickPermit = False
             print(picked_card)
+
 
     elif gameState == 4:  # pause
         pause()

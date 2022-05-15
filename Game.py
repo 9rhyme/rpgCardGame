@@ -1,6 +1,5 @@
 import os
 import random
-
 import pygame
 
 from Card import Card
@@ -24,6 +23,7 @@ class Game:
         self.cols = 5
         self.rows = 5
         self.cards_group = pygame.sprite.Group()
+        self.clickPermit = False
 
         # flipping & timing
         self.flipped = []
@@ -33,7 +33,8 @@ class Game:
         # generate first level
         self.generate_level()
 
-    def update(self, event_list):
+    def update(self, event_list,clickPermit = False):
+        self.clickPermit = clickPermit
         self.user_input(event_list)
         self.draw()
         return self.check_level_complete(event_list)
@@ -42,7 +43,7 @@ class Game:
         return_value = None
         if not self.block_game:
             for event in event_list:
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.clickPermit:
                     for card in self.cards_group:
                         if card.rect.collidepoint(event.pos) and card.shown is not True:
                             self.flipped.append(card.name)
