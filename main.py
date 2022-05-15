@@ -42,10 +42,14 @@ screenHeight = 730
 screen = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption('Cards & Crypts')
 
-# defined fonts
-font1 = pygame.font.Font('fonts/Forte.ttf', 25)
-font2 = pygame.font.Font('fonts/Jokerman.ttf', 15)
-font3 = pygame.font.Font('fonts/Calibri.ttf', 15)
+# # defined fonts
+# font1 = pygame.font.Font('fonts/Forte.ttf', 25)
+# font2 = pygame.font.Font('fonts/Jokerman.ttf', 15)
+# font3 = pygame.font.Font('fonts/Calibri.ttf', 15)
+
+font1 = pygame.font.SysFont('Forte', 25)
+font2 = pygame.font.SysFont('Jokerman', 15)
+font3 = pygame.font.SysFont('Calibri', 15)
 
 # define colors
 red = (255, 0, 0)
