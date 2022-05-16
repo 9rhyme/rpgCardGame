@@ -18,7 +18,7 @@ class Enemy:
         self.level = level
         self.alive = True
         self.isFrozen = False
-        self.max_health = 100.0 + (self.level - 1) * 10  # enemies gain 10 hp each level
+        self.max_health = 100.0 + (self.level - 1) * 20  # enemies gain 10 hp each level
         self.curr_health = self.max_health
         self.height = 80  # later use for larger enemies and their health bars
         self.type = type

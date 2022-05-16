@@ -44,11 +44,7 @@ screenHeight = 730
 screen = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption('Cards & Crypts')
 
-# # defined fonts
-# font1 = pygame.font.Font('fonts/Forte.ttf', 25)
-# font2 = pygame.font.Font('fonts/Jokerman.ttf', 15)
-# font3 = pygame.font.Font('fonts/Calibri.ttf', 15)
-
+# # defined fonts (only works on windows and shows a default font in MAC)
 font1 = pygame.font.SysFont('Forte', 25)
 font2 = pygame.font.SysFont('Jokerman', 15)
 font3 = pygame.font.SysFont('Calibri', 15)
@@ -64,23 +60,24 @@ eff_col = red
 # load necessary images
 # ui images and Button objects
 mainMenuImg = pygame.image.load('img/ui/mainMenu.png')
+mainMenuImg = pygame.transform.scale(mainMenuImg,(400,730))
 
 startButtonImg = pygame.image.load('img/ui/startButton.png')
-startButton = Button(screen, 110, 500, startButtonImg, 187, 70)
+startButton = Button(screen, 110, 590, startButtonImg, 187, 70)
 
 nextButtonImg = pygame.image.load('img/ui/nextButton.png')
 nextButton = Button(screen, 110, 90, nextButtonImg, 187, 70)
 
 menuButtonImg = pygame.image.load('img/ui/menuButton.png')
-menuButton = Button(screen, 110, 650, menuButtonImg, 187, 70)
+menuButton = Button(screen, 110, 660, menuButtonImg, 187, 70)
 
 muteButtonImg1 = pygame.image.load('img/ui/mute.png')
 muteButtonImg2 = pygame.image.load('img/ui/unmute.png')
-muteButton = Button(screen, 0, 0, muteButtonImg1, 38, 32)
+muteButton = Button(screen, 360, 0, muteButtonImg1, 38, 32)
 muteState = 1
 
 howToButtonImg = pygame.image.load('img/ui/howToButton.png')
-howToButton = Button(screen, 90, 570, howToButtonImg, 226, 38)
+howToButton = Button(screen, 90, 670, howToButtonImg, 226, 38)
 howToImg = pygame.image.load('img/ui/howTo.png')
 
 gameOverScreen = pygame.image.load('img/ui/game_over_1.png')
@@ -109,7 +106,7 @@ incAttack_icon = pygame.transform.scale(incAttack_icon, (30, 30))
 incDefence_icon = pygame.image.load('img/icons/incDefence.png')
 incDefence_icon = pygame.transform.scale(incDefence_icon, (30, 30))
 
-
+# on/off for music
 def musicSwitch():
     global musicPlaying
     if musicPlaying:
@@ -135,7 +132,6 @@ def draw_gameOver():
         if muteState == -1:
             pygame.mixer.music.pause()
             musicPlaying = False
-
 
 def mainMenu():
     global musicPlaying
@@ -169,10 +165,8 @@ def mainMenu():
         initiateGame = True
         screen.fill(pygame.color.Color(0, 0, 0))
 
-
 def pause():
     screen.blit(pauseImg, (120, 40))
-
 
 def howTo():
     global gameState
@@ -190,10 +184,8 @@ def howTo():
     if menuButton.draw():
         gameState = 0
 
-
 def draw_bg():
     screen.blit(rpg_background, (0, 0))
-
 
 def draw_panel():
     # draw panel rectangle
@@ -207,17 +199,17 @@ def draw_statusIcons(effectsDict, side):
     sides = (5, 370)
     for effect in list(effectsDict):
         if effect == 'bleeding':
-            screen.blit(bleeding_icon, (sides[side], 10))
+            screen.blit(bleeding_icon, (sides[side], 100))
         if effect == 'burning':
             screen.blit(burning_icon, (sides[side], 40))
         if effect == 'zapped':
             screen.blit(zapped_icon, (sides[side], 70))
         if effect == 'incAttack':
-            screen.blit(incAttack_icon, (sides[side], 100))
+            screen.blit(incAttack_icon, (sides[side], 10))
         if effect == 'incDefence':
             screen.blit(incDefence_icon, (sides[side], 130))
 
-
+# game loop
 run = True
 while run:
     clock.tick(FPS)
@@ -248,7 +240,6 @@ while run:
             # create a player
             knight = Player()
             playerHealthBar = HealthBar(65, 100, knight.curr_health, knight.max_health)
-            # we don't want to see same enemy twice in a row
 
             # from here we restart all essential game variables for the new game loop
             previousEnemy = ''
@@ -274,29 +265,29 @@ while run:
             en_effect = None
             clickPermit = True
             wantNextEnemy = False
-            # no repeating enemies
+            # no repeating enemies we don't want to see same enemy twice in a row
             nextEnemy = random.choice(list(Enemy.enemyTypes))
             while nextEnemy == previousEnemy:
                 nextEnemy = random.choice(list(Enemy.enemyTypes))
             opponent = Enemy(nextEnemy, previousEnemyLvl + 1)
             previousEnemy = opponent.type
             previousEnemyLvl += 1
-
-
-            knight.max_health += 5*(previousEnemyLvl-1)
-            knight.curr_health = knight.max_health
-            knight.attackPow += previousEnemyLvl-1
-            opponentHealthBar = HealthBar(270, 100, opponent.curr_health, opponent.max_health,
-                                          opponent.level)
+            opponentHealthBar = HealthBar(270, 100, opponent.curr_health, opponent.max_health,opponent.level)
             enemyAlive = True
 
-        # draw recurring elements
+            # strengthen the knight a litle
+            knight.max_health += 5 * (previousEnemyLvl - 1)
+            knight.curr_health = knight.max_health
+            knight.attackPow += (previousEnemyLvl - 1) / 10
+
+        # draw recurring ui elements
         draw_bg()
         draw_panel()
         draw_statusIcons(knight.activeEffects, 0)
         draw_statusIcons(opponent.activeEffects, 1)
         playerHealthBar.draw(knight.curr_health / knight.max_health, screen, heart_img)
 
+        #handle mute functionality
         if muteButton.draw():
             if muteState == 1:
                 muteButton.image = muteButtonImg2
@@ -305,14 +296,14 @@ while run:
                 muteButton.image = muteButtonImg1
                 muteState = 1
             musicSwitch()
-
+        # Enemy health bar and level
         if opponent.alive:
             lvl = opponentHealthBar.draw(opponent.curr_health / opponent.max_health, screen, heart_img, font3)
             hovering_texts_group.add(lvl)
         # animate the knight if he's alive
         if knight.alive:
             knight.update()
-        else:
+        else:# if dead animate until death animation finishes
             if knight.frame_index < len(knight.animation_list[11]):
                 knight.update()
         knight.draw(screen)
@@ -375,11 +366,13 @@ while run:
         # check if enemy dealt damage and if so make the player receive it
         # sideNote: i also check if the enemy action is back to zero
         #           this way things progress after the attack animation is finished
+
         if en_attackMissed and opponent.action == 0:
             prompt = HoveringText(screenWidth / 2, 260, 'Enemy Missed', white, font1, True)
             messages.append(prompt)
             en_attackMissed = False
             clickPermit = True
+
         if en_dmg != 0 and opponent.action == 0:
             if en_effect != 'frozen':
                 clickPermit = True
@@ -414,8 +407,8 @@ while run:
         if current_turn == 0 and not effectsManaged:
             knight.manageStatusEffects()
             effectsManaged = True
-        # handle player action
 
+        # handle player action
         if knight.alive:
             if current_turn == 0:
                 action_cooldown += 1
@@ -428,7 +421,8 @@ while run:
                         knight.isFrozen = False
 
 
-        else:  # handle death animation
+        else:
+            # handle death animation
             if not deathPlayed:
                 pygame.mixer.music.load('music/end.wav')
                 pygame.mixer.music.play(-1)
@@ -440,15 +434,17 @@ while run:
                 knight.frame_index = 0
                 deathPlayed = True
             else:
-
                 draw_gameOver()
+
         if not knight.alive:
             current_turn = 2  # stop enemies from attacking after player is dead
 
+        #  you missed prompt
         if pl_attackMissed and knight.action == 0:
             prompt = HoveringText(screenWidth / 2, 260, 'You Missed', white, font1, True)
             messages.append(prompt)
             pl_attackMissed = False
+
         # same logic as the last time but for the opposite side
         if pl_dmg != 0 and knight.action == 0:
             # handle the hovering text above enemy
@@ -552,7 +548,7 @@ while run:
             clickPermit = False
             print(picked_card)
 
-    elif gameState == 2:
+    elif gameState == 2: # how to play screen
         howTo()
 
     elif gameState == 4:  # pause
